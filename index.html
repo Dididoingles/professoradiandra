@@ -782,12 +782,13 @@
       text-align: center;
       padding: 0.6rem 1.2rem;
       border: 1.5px solid var(--dark-red);
-      border-radius: 30px;
+      border-radius: 10px;
       color: var(--dark-red);
       font-weight: 600;
       font-size: 0.9rem;
       background: transparent;
       cursor: default;
+      text-decoration: none;
       transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
     }
 
@@ -860,7 +861,19 @@
       gap: 1.5rem;
       margin-top: 5rem;
       padding-top: 3rem;
-      border-top: 1px solid rgba(146, 15, 11, 0.15);
+      border-top: 1px solid rgba(146, 15, 11, 0);
+    }
+
+    .cta-simulation-wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(146, 15, 11, 0);
     }
 
     .cta-final-title {
@@ -1021,7 +1034,7 @@
       .process-pill-btn {
         width: 100%;
         min-width: unset;
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         padding: 0.8rem 0.5rem;
         border-radius: 10px;
       }
@@ -1392,13 +1405,20 @@
           </a>
 
     </div>
-    <!-- Seção de Encerramento (Integrada ao fundo da seção anterior) -->
     <div class="cta-final-wrapper reveal-on-scroll">
-        <h3 class="cta-final-title">Quer saber mais sobre como você aprende? Vamos agendar uma avaliação!</h3>
-        <a href="https://wa.me/" target="_blank" class="whatsapp-btn cta-final-btn" aria-label="Agendar entrevista cognitiva">
-          <i class="fa-brands fa-whatsapp"></i>
-          Agendar avaliação gratuita
-        </a>
+        <h3 class="cta-final-title">Quer saber mais sobre como você aprende? Agende uma avaliação gratuita ou faça uma simulação da sua mensalidade!</h3>
+        
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; align-items:center;">
+          <a href="https://wa.me/" target="_blank" class="whatsapp-btn cta-final-btn">
+            <i class="fa-brands fa-whatsapp"></i>
+            Agendar avaliação gratuita
+          </a>
+          
+          <a href="calc.html" class="process-pill-btn">
+            <i class="fa-solid fa-calculator"></i>
+            Simulação da Mensalidade
+          </a>
+        </div>
       </div>
   
   </section>
