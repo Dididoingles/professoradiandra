@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prof.a Diandra de Inglês</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.png" type="image/png">
+
+  <!-- Tipografia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       1. VARIÁVEIS E CONFIGURAÇÕES
+       ========================================================================== */
+    :root {
+      --bg-hero: #dedcd5;
+      --text-dark: #525252d2;
+      --text-heading: #585858a2;
+      --text-quote: #7a7a7a;
+      --text-light: #e0e0e0;
+      --accent-red: #c20000;
+      --dark-red: #920f0b; 
+      
+      --font-primary: 'Poppins', sans-serif;
+      
+      --container-max-width: 1440px;
+      
+      --left-col-width: 31%;
+      --right-col-width: 29%;
+      --center-image-width: 54%;
+      
+      --anim-duration: 1.4s;
+      --smooth-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #000000;
+    }
+
+    /* Canvas do Crachá Sobreposto */
+    #c {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    /* ==========================================================================
+       BOTÃO MARCADOR FLUTUANTE E MENU GAVETA (DRAWER)
+       ========================================================================== */
+    .nav-drawer-btn {
+      position: fixed;
+      top: 1.5rem;
+      left: -14px;
+      z-index: 1000;
+      background-color: var(--accent-red);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-left: none;
+      padding: 0.75rem 0.9rem 0.75rem 1.4rem;
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.25);
+      transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .nav-drawer-btn:hover {
+      background-color: var(--dark-red);
+      transform: translateX(6px);
+      box-shadow: 6px 0 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .nav-drawer-btn i {
+      font-size: 0.95rem;
+    }
+
+    /* Drawer Overlay */
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1050;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Drawer Panel Enxuto */
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      left: -270px;
+      width: 250px;
+      height: 100vh;
+      background-color: #0c0c0c;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      padding: 1.8rem 1.2rem;
+      transition: left 0.4s var(--smooth-easing);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+      overflow-x: hidden;
+    }
+
+    .drawer-panel.active {
+      left: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .drawer-brand {
+      display: flex;
+      align-items: center;
+    }
+
+    .drawer-title {
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .drawer-close-btn {
+      background: none;
+      border: none;
+      color: #a0a0a0;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      padding-left: 0.5rem;
+    }
+
+    .drawer-close-btn:hover {
+      color: var(--accent-red);
+    }
+
+    .drawer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .drawer-link {
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 0.8rem;
+      border-radius: 6px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .drawer-link i {
+      width: 18px;
+      text-align: center;
+      color: var(--accent-red);
+      font-size: 0.9rem;
+    }
+
+    .drawer-link:hover {
+      background-color: rgba(194, 0, 0, 0.15);
+      color: #ffffff;
+    }
+
+    /* Container do topo (#dedcd5) */
+    .hero-wrapper {
+      width: 100%;
+      background-color: var(--bg-hero);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 4.5rem;
+      padding-bottom: 10rem;
+      position: relative;
+    }
+
+    .hero-container {
+      width: 100%;
+      max-width: var(--container-max-width);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem 3.5rem 0 3.5rem;
+    }
+
+    /* ==========================================================================
+       2. LAYOUT PRINCIPAL E ANIMAÇÕES
+       ========================================================================== */
+    .hero-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      flex: 1;
+      z-index: 2;
+    }
+
+    /* Lado Esquerdo */
+    .hero-left {
+      width: var(--left-col-width);
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      z-index: 3;
+      opacity: 0;
+      animation: slideFromLeft var(--anim-duration) var(--smooth-easing) forwards;
+      animation-delay: 0.1s;
+    }
+
+    .main-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: var(--text-heading);
+      line-height: 1.15;
+      margin-bottom: 30px;
+    }
+
+    .description-text {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--text-dark);
+      font-weight: 400;
+    }
+
+    .description-text strong {
+      color: var(--dark-red);
+      font-weight: 700;
+    }
+
+    /* Botão WhatsApp */
+    .btn-container {
+      margin-top: 0.2rem;
+      opacity: 0;
+      animation: raiseUp var(--anim-duration) var(--smooth-easing) forwards;
+      animation-delay: 0.45s;
+    }
+
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--accent-red);
+      color: #ffffff;
+      padding: 0.65rem 1.4rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 15px rgba(194, 0, 0, 0.25);
+      transition: transform 0.4s var(--smooth-easing), box-shadow 0.4s var(--smooth-easing), background-color 0.3s ease;
+    }
+
+    .whatsapp-btn:hover {
+      background-color: var(--dark-red);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(194, 0, 0, 0.4);
+    }
+
+    .whatsapp-btn i {
+      font-size: 1.1rem;
+    }
+
+    .subtext {
+      font-size: 0.73rem;
+      color: #707070;
+      line-height: 1.25;
+      margin-top: 0.8rem;
+      max-width: 270px;
+    }
+
+    /* Imagem Central */
+    .hero-center {
+      position: absolute;
+      left: 48%;
+      top: -10px;
+      transform: translateX(-50%);
+      width: var(--center-image-width);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      z-index: 2;
+      pointer-events: none;
+      
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 98%);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 98%);
+    }
+
+    .center-img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      opacity: 0;
+      will-change: transform, opacity;
+      transition: opacity 0.8s var(--smooth-easing), transform 0.8s var(--smooth-easing);
+    }
+
+    .center-img.loaded {
+      animation: raiseUp var(--anim-duration) var(--smooth-easing) forwards;
+    }
+
+    /* Lado Direito */
+    .hero-right {
+      width: var(--right-col-width);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1.4rem;
+      text-align: right;
+      z-index: 3;
+      opacity: 0;
+      animation: slideFromRight var(--anim-duration) var(--smooth-easing) forwards;
+      animation-delay: 0.25s;
+    }
+
+    .instagram-handle {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #9b9b9bd3;
+      text-decoration: none;
+    }
+
+    .quote-block {
+      font-size: 0.9rem;
+      line-height: 1.35;
+      color: #a8a8a8b2;
+      font-weight: 400;
+      max-width: 290px;
+    }
+
+    /* ==========================================================================
+       3. TÍTULO "EDUCAÇÃO PARA O FUTURO"
+       ========================================================================== */
+    .hero-bottom {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      margin-top: 8rem;
+    }
+
+    .big-title {
+      font-size: 8vw;
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--dark-red);
+      white-space: nowrap;
+      letter-spacing: -2px;
+      line-height: 0.9;
+      display: inline-block;
+      margin: 0 auto;
+      pointer-events: auto;
+      min-height: 1em;
+      transition: color 0.4s ease, -webkit-text-stroke 0.4s ease;
+    }
+
+    /* ==========================================================================
+       4. SEÇÃO FEEDBACK
+       ========================================================================== */
+    .feedback-section {
+      width: 100%;
+      max-width: var(--container-max-width);
+      padding: 5rem 2rem 8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #000000;
+      position: relative;
+    }
+
+    .feedback-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .feedback-subtitle {
+      font-size: 0.65rem;
+      color: #a0a0a0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .feedback-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -1px;
+    }
+
+    .feedback-title span {
+      color: var(--accent-red);
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.8rem;
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 6rem;
+    }
+
+    .feedback-card {
+      background: radial-gradient(circle at top left, rgba(194, 0, 0, 0.048), transparent 75%), #0c0c0c;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 2.4rem 2.2rem 2.2rem 2.2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: transform 0.4s var(--smooth-easing), border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .feedback-card::after {
+      content: '”';
+      position: absolute;
+      top: -1px;
+      right: 15px;
+      font-size: 7rem;
+      font-family: Georgia, serif;
+      color: var(--accent-red);
+      opacity: 0.08;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .feedback-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(194, 0, 0, 0.4);
+      box-shadow: 0 15px 35px rgba(194, 0, 0, 0.15);
+    }
+
+    .card-stars {
+      color: var(--accent-red);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      margin-bottom: 1.2rem;
+    }
+
+    .card-quote {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--text-light);
+      font-weight: 300;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card-author {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.2rem;
+    }
+
+    .card-role {
+      font-size: 0.78rem;
+      color: var(--accent-red);
+      font-weight: 500;
+    }
+
+    .stats-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5rem;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--accent-red);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: #b0b0b0;
+      font-weight: 400;
+    }
+
+    /* ==========================================================================
+       5. SEÇÃO ECOSSISTEMA DE APRENDIZADO
+       ========================================================================== */
+    .ecosystem-section {
+      width: 100%;
+      max-width: var(--container-max-width);
+      padding: 5rem 2rem 8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #000000;
+      position: relative;
+    }
+
+    .ecosystem-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .ecosystem-subtitle {
+      font-size: 0.65rem;
+      color: #a0a0a0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .ecosystem-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .ecosystem-title span {
+      color: var(--accent-red);
+    }
+
+    .ecosystem-desc {
+      font-size: 0.65rem;
+      color: #a0a0a0;
+      font-weight: 300;
+    }
+
+    .ecosystem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.8rem;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .ecosystem-card {
+      background: radial-gradient(circle at top left, rgba(194, 0, 0, 0.048), transparent 75%), #0c0c0c;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 2.4rem 2.2rem 2.2rem 2.2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: transform 0.4s var(--smooth-easing), border-color 0.4s ease, box-shadow 0.4s ease;
+      min-height: 180px;
+    }
+
+    .ecosystem-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(194, 0, 0, 0.4);
+      box-shadow: 0 15px 35px rgba(194, 0, 0, 0.15);
+    }
+
+    .ecosystem-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .ecosystem-icon {
+      color: var(--accent-red);
+      font-size: 1.1rem;
+    }
+
+    .tag-icon {
+      color: var(--dark-red);
+      font-size: 0.8rem;
+    }
+
+    .ecosystem-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .ecosystem-card-text {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+
+    /* ==========================================================================
+       6. SEÇÃO O PROCESSO DE APRENDIZADO LEVADO À SÉRIO
+       ========================================================================== */
+    .process-section {
+      width: 100%;
+      background-color: var(--bg-hero);
+      padding: 6rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .process-container {
+      width: 100%;
+      max-width: var(--container-max-width);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .process-top-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 3rem;
+      margin-bottom: 4rem;
+    }
+
+    .process-text-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .process-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--dark-red);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .process-desc {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-dark);
+      font-weight: 400;
+    }
+
+    .process-image-col {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .process-hand-img {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      max-height: 380px;
+    }
+
+    .process-bottom-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 3rem;
+      margin-bottom: 4rem;
+    }
+
+    .process-charts-col {
+      flex: 1.3;
+      display: flex;
+      justify-content: flex-start;
+      margin-top: -2.5rem;
+    }
+
+    .process-charts-img {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .process-refs-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .refs-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.2rem;
+    }
+
+    .refs-text {
+      font-size: 0.4rem;
+      line-height: 1.45;
+      color: #707070;
+      opacity: 0.85;
+      font-weight: 300;
+    }
+
+    .process-buttons-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .process-pill-btn {
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      padding: 0.6rem 1.2rem;
+      border: 1.5px solid var(--dark-red);
+      border-radius: 30px;
+      color: var(--dark-red);
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: transparent;
+      cursor: default;
+      transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    }
+
+    .process-pill-btn:hover {
+      background-color: var(--dark-red);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: opacity 1.2s ease-out, transform 1.2s var(--smooth-easing);
+    }
+
+    .reveal-on-scroll.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.25s; }
+    .delay-3 { transition-delay: 0.4s; }
+
+    /* ==========================================================================
+       7. KEYFRAMES
+       ========================================================================== */
+    @keyframes slideFromLeft {
+      0% {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideFromRight {
+      0% {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes raiseUp {
+      0% {
+        opacity: 0;
+        transform: translateY(35px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ==========================================================================
+       9. SEÇÃO DE ENCERRAMENTO (CTA FINAL)
+       ========================================================================== */
+    .cta-final-wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.5rem;
+      margin-top: 5rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(146, 15, 11, 0.15);
+    }
+
+    .cta-final-title {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text-dark);
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+    }
+
+    .cta-final-btn {
+      font-size: 0.85rem;
+      padding: 0.8rem 1.8rem;
+    }
+
+    /* ==========================================================================
+       8. RESPONSIVO (MOBILE)
+       ========================================================================== */
+    @media (max-width: 900px) {
+      #c {
+        display: none !important;
+      }
+
+      .nav-drawer-btn {
+        top: 1rem;
+        padding: 0.65rem 0.75rem 0.65rem 1.1rem;
+      }
+
+      .hero-wrapper {
+        padding-top: 3.8rem;
+        padding-bottom: 2.5rem;
+      }
+
+      .hero-container {
+        padding: 1.5rem 1.2rem 0 1.2rem;
+      }
+
+      .hero-main {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hero-left {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+      }
+
+      .hero-right {
+        display: none;
+      }
+
+      .hero-center {
+        position: relative;
+        left: 0;
+        top: 0;
+        transform: none;
+        width: 100%;
+        margin: 1.5rem 0 0 0;
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%);
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 95%);
+      }
+
+      .main-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.2px;
+        color: var(--text-heading);
+        line-height: 1.15;
+        margin-bottom: 30px;
+      }
+
+      .description-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: var(--text-dark);
+        font-weight: 400;
+      }
+
+      .description-text strong {
+        color: var(--accent-red);
+        font-weight: 700;
+      }
+
+      .big-title {
+        font-size: 7vw;
+        letter-spacing: -0.5px;
+        -webkit-text-stroke: 1px var(--dark-red);
+      }
+
+      .hero-bottom {
+        margin-top: 2rem;
+      }
+
+      .feedback-section {
+        padding: 3.5rem 1.2rem 6rem 1.2rem;
+      }
+
+      .feedback-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+      }
+
+      .ecosystem-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+      }
+
+      .ecosystem-title, .process-title {
+        white-space: normal;
+        font-size: 1.6rem;
+        line-height: 1.1;
+      }
+
+      .ecosystem-icon {
+      color: var(--accent-red);
+      font-size: 1.1rem;
+    }
+
+    .ecosystem-card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .ecosystem-card-text {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+
+      .process-title {
+        font-size: 1.2rem;
+        font-weight: 900;
+        color: var(--dark-red);
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+      }
+
+      .process-top-grid, .process-bottom-grid {
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .process-section {
+        padding: 4rem 1.2rem;
+      }
+
+      .process-buttons-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        width: 100%;
+      }
+
+      .process-pill-btn {
+        width: 100%;
+        min-width: unset;
+        font-size: 0.65rem;
+        padding: 0.8rem 0.5rem;
+        border-radius: 10px;
+      }
+
+      .stats-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        width: 100%;
+        align-items: start;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+      }
+
+      .cta-final-wrapper {
+        margin-top: 3rem;
+        padding-top: 2rem;
+      }
+      
+      .cta-final-title {
+        font-size: 0.8rem;
+        line-height: 1.25;
+        font-weight: 300;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #00000000;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-red);
+      }
+
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) #000000;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas do Crachá Físico -->
+  <canvas id="c"></canvas>
+
+  <!-- Marcador Flutuante -->
+  <button class="nav-drawer-btn" id="openDrawerBtn" aria-label="Abrir menu de navegação">
+    <i class="fa-solid fa-chevron-right"></i>
+  </button>
+
+  <!-- Drawer Lateral / Overlay -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer-panel" id="drawerPanel">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <span class="drawer-title">Acesso rápido</span>
+      </div>
+      <button class="drawer-close-btn" id="closeDrawerBtn" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="drawer-links">
+      <a href="metodo.html" class="drawer-link">
+        <i class="fa-solid fa-book-open"></i> Método
+      </a>
+      <a href="calc.html" class="drawer-link">
+        <i class="fa-solid fa-calculator"></i> Orçamento
+      </a>
+      <a href="https://dididoingles.github.io/library/" class="drawer-link">
+        <i class="fa-solid fa-folder-open"></i> Materiais
+      </a>
+      <a href="soualuno.html" class="drawer-link">
+        <i class="fa-solid fa-user-graduate"></i> Sou Aluno
+      </a>
+      <a href="https://www.instagram.com/dicarvalho.prof/" target="_blank" rel="noopener noreferrer" class="drawer-link">
+        <i class="fa-brands fa-instagram"></i> Instagram
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Wrapper Superior Claro (#dedcd5) -->
+  <div class="hero-wrapper">
+
+    <!-- Hero Section -->
+    <div class="hero-container">
+      <main class="hero-main">
+        
+        <!-- Bloco Esquerdo -->
+        <section class="hero-left">
+          <h1 class="main-title">Prof.a Diandra de Inglês</h1>
+          
+          <p class="description-text">
+            Oi! Eu sou a <strong>Diandra</strong>, mas pode me chamar de <strong>Di</strong>.<br>
+            Eu sou uma <strong>professora de Inglês Independente</strong>,<br>
+            Especialista em <strong>neurolinguística.</strong>
+          </p>
+
+          <div class="btn-container">
+            <a href="https://wa.me/5516993272278" target="_blank" class="whatsapp-btn" aria-label="Conversar no WhatsApp">
+              <i class="fa-brands fa-whatsapp"></i>
+              Conversar no WhatsApp
+            </a>
+            <p class="subtext">
+              Role a página para baixo para acessar ferramentas gratuitas, a nossa biblioteca, testar seu nível de Inglês e muito mais!
+            </p>
+          </div>
+        </section>
+
+        <!-- Imagem Central -->
+        <section class="hero-center">
+          <img src="center.png" alt="Professora Diandra de Inglês" class="center-img" id="centerImage">
+        </section>
+
+        <!-- Bloco Direito -->
+        <section class="hero-right">
+          <a href="https://instagram.com/dicarvalho.prof" target="_blank" class="instagram-handle">
+            @dicarvalho.prof
+          </a>
+
+          <blockquote class="quote-block">
+            Carl Sagan disse: "Uma lição central da ciência é que, para entender questões complexas (ou até simples), devemos tentar liberar nossas mentes do dogma e garantir a liberdade de publicar, de contradizer e de experimentar. Argumentos de autoridade são inaceitáveis." Nada é verdade só porque alguém disse que é, inclusive eu. Questionar é essência do que te faz humano. Fique à vontade para questionar aqui.
+          </blockquote>
+        </section>
+
+      </main>
+
+      <!-- Título Principal -->
+      <footer class="hero-bottom">
+        <h2 class="big-title" id="typewriterTitle"></h2>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Seção de Feedback / Depoimentos (#000000) -->
+  <section class="feedback-section">
+    
+    <div class="feedback-header reveal-on-scroll">
+      <p class="feedback-subtitle">Depoimentos</p>
+      <h2 class="feedback-title">A voz da <span>evolução</span></h2>
+    </div>
+
+    <!-- Cards de Feedback -->
+    <div class="feedback-grid">
+      
+      <article class="feedback-card reveal-on-scroll delay-1">
+        <div>
+          <div class="card-stars">
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <p class="card-quote">
+            As aulas têm sido sensacionais. Nunca imaginei que fosse conseguir aprender inglês, e em 4 meses tive um avanço que não acreditava ser possível.
+          </p>
+        </div>
+        <div>
+          <h3 class="card-author">Gabriel Savi</h3>
+          <p class="card-role">Desenvolvedor | fluente em 4 meses</p>
+        </div>
+      </article>
+
+      <article class="feedback-card reveal-on-scroll delay-2">
+        <div>
+          <div class="card-stars">
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <p class="card-quote">
+            Diandra's classes have absolutely helped me, specifically regarding pronunciation and complex subjects. A true game changer.
+          </p>
+        </div>
+        <div>
+          <h3 class="card-author">Diego Lopes</h3>
+          <p class="card-role">Engineer</p>
+        </div>
+      </article>
+
+      <article class="feedback-card reveal-on-scroll delay-3">
+        <div>
+          <div class="card-stars">
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <p class="card-quote">
+            Professora Diandra tiene uma metodologia simples e funcional. Muito incentivadora e as aulas são altamente eficazes.
+          </p>
+        </div>
+        <div>
+          <h3 class="card-author">Keila Martins</h3>
+          <p class="card-role">Cost analyst</p>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Métricas com Contador Animado -->
+    <div class="stats-container reveal-on-scroll delay-2">
+      
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="2000" data-suffix="+">0</span></div>
+        <div class="stat-label">Alunos ao redor do mundo</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="98" data-suffix="%">0</span></div>
+        <div class="stat-label">Taxa de satisfação</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-number"><span class="counter" data-target="4.9" data-decimals="1">0.0</span> ★</div>
+        <div class="stat-label">Avaliação média</div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Seção Ecossistema de Aprendizado (#000000) -->
+  <section class="ecosystem-section">
+    <div class="ecosystem-header reveal-on-scroll">
+      <p class="ecosystem-subtitle">Acesso rápido</p>
+      <h2 class="ecosystem-title">Ecossistema de <span>aprendizado</span></h2>
+      <p class="ecosystem-desc">Ferramentas Beta para testar e aprender de graça</p>
+    </div>
+
+    <div class="ecosystem-grid">
+      
+      <!-- Card 1: Whiteboard -->
+      <a href="https://dididoingles.github.io/whiteboard-2.0/" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-1">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Whiteboard</h3>
+            <i class="fas fa-chalkboard ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Projeto autoral. Licensa aberta para uso não comercial</p>
+        </div>
+      </a>
+
+      <!-- Card 2: Biblioteca -->
+      <a href="https://dididoingles.github.io/library/" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-2">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Biblioteca</h3>
+            <i class="fas fa-book-open ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Materiais curados, e-books e recursos extras para baixar gratuitamente.</p>
+        </div>
+      </a>
+
+      <!-- Card 3: Falar com a Di -->
+      <a href="https://wa.me/5516993272278" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-3">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Falar com a Di</h3>
+            <i class="fa-brands fa-whatsapp ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Dúvidas ou agendamentos? Clique para o WhatsApp direto.</p>
+        </div>
+      </a>
+
+      <!-- Card 4: Teste de Nivelamento -->
+      <a href="https://dididoingles.github.io/testyourenglish/" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-1">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Teste de Nivelamento</h3>
+            <i class="fas fa-signal ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Faça o teste rápido e descubra onde você está na jornada. Gratuito.</p>
+        </div>
+      </a>
+
+      <!-- Card 5: Estilo de aprendizagem -->
+      <a href="https://dididoingles.github.io/discoveryourprofile/" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-2">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Estilo de aprendizagem</h3>
+            <i class="fas fa-brain ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Descubra seu estilo dominante de aprendizagem. Gratuito.</p>
+        </div>
+      </a>
+
+      <!-- Card 6: Praticar -->
+      <a href="https://dididoingles.github.io/praticar/" target="_blank" rel="noopener noreferrer" class="ecosystem-card reveal-on-scroll delay-3">
+        <div>
+          <div class="ecosystem-card-top">
+            <h3 class="ecosystem-card-title">Praticar</h3>
+            <i class="fas fa-lightbulb ecosystem-icon"></i>
+          </div>
+          <p class="ecosystem-card-text">Pratique inglês de graça com o nosso ambiente contextualizado. [Beta]</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- Seção O Processo de Aprendizado Levado à Sério (#dedcd5) -->
+  <section class="process-section">
+    <div class="process-container reveal-on-scroll">
+      
+      <div class="process-top-grid">
+        <div class="process-text-col">
+          <h2 class="process-title">O PROCESSO DE APRENDIZAGEM LEVADO À SÉRIO</h2>
+          <p class="process-desc">
+            Não criamos nada no escuro. Antes de criar um plano de ensino, fazemos um teste de aptidão (M-Lat adaptado) para entender que tipo de aula e intervenção faz mais sentido para o aluno no momento do teste. São avaliados: A capacidade de reter um som novo apenas ouvindo, a capacidade aproximada da memória de trabalho, a capacidade de inferência lógica e o controle inibitório aproximado.
+          </p>
+        </div>
+        <div class="process-image-col">
+          <img src="images/handimage.png" alt="Processo de Aprendizado" class="process-hand-img">
+        </div>
+      </div>
+
+      <div class="process-bottom-grid">
+        <div class="process-charts-col">
+          <img src="images/charts.png" alt="Gráficos de Desempenho e Distribuição" class="process-charts-img">
+        </div>
+        <div class="process-refs-col">
+          <p class="refs-title">Referências Científicas</p>
+          <p class="refs-text">• Baddeley, A. D. (2003). "Working memory and language: An overview." Journal of Communication Disorders. Elsevier.</p>
+          <p class="refs-text">• Ullman, M. T. (2016). "The declarative/procedural model: A neurobiological model of language learning." Neurobiology of Language. Elsevier.</p>
+          <p class="refs-text">• Poldrack, R. A. et al. (2018). "The neural bases of cognitive control and learning." Trends in Cognitive Sciences. Elsevier.</p>
+          <p class="refs-text">• Kroll, J. F. & Bialystok, E. (2022). "Understanding the consequences of bilingualism for language processing and cognition." Trends in Cognitive Sciences.</p>
+          <p class="refs-text">• Este teste DLP foi desenvolvido com base em protocolos de avaliação do Hi-LAB (High-Level Language Aptitude Battery) e MLAT (Modern Language Aptitude Test), validados por estudos de neuroimagem publicados em periódicos.</p>
+          <p class="refs-text">• Adaptado por Diandra Carvalho</p>
+        </div>
+      </div>
+
+      <div class="process-buttons-row">
+        <a href="https://www.google.com/search?q=Infer%C3%AAncia+Fon%C3%A9tica&sca_esv=3293b059aa9c7b4a&sxsrf=APpeQnsQJTYjHvNHpeodxhuQXDCZE8L0zw%3A1790435559406&source=hp&ei=5-C3aqmOFufM1sQPzs6wmAo&iflsig=ABILxe8AAAAAarfu9-8wFM_nzq9o5bUMPKYFVnPpdDRK&ved=0ahUKEwjpnYmcxIyXAxVnppUCHU4nDKMQ4dUDCCg&uact=5&oq=Infer%C3%AAncia+Fon%C3%A9tica&gs_lp=Egdnd3Mtd2l6IhVJbmZlcsOqbmNpYSBGb27DqXRpY2EyBRAhGKABSMclUABYAHABeACQAQCYAcIBoAHCAaoBAzAuMbgBA8gBAPgBAvgBAZgCAaACCpgDAJIHATGgB5oBsgcAuAcAwgcDMi0xyAcGgAgB&sclient=gws-wiz" target="_blank" class="process-pill-btn" aria-label="Inferência Fonética">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Inferência Fonética
+          </a>
+          <a href="https://www.google.com/search?q=mem%C3%B3ria+de+trabalho&sca_esv=3293b059aa9c7b4a&sxsrf=APpeQnvbtE8kBs12KvfOibB9T_l7lvQNiw%3A1790436053230&ei=1eK3apDQDaLR1sQPuK60qA0&biw=1358&bih=636&oq=Mem%C3%B3ria+de+trabal&gs_lp=Egxnd3Mtd2l6LXNlcnAiEk1lbcOzcmlhIGRlIHRyYWJhbCoICAAYgAQYywEyCBAAGIAEGMsBMgsQABiABBjLARi0BzILEAAYgAQYywEYtAcyCxAAGIAEGMsBGLQHMggQABiABBjLATIIEAAYgAQYywEyCxAAGIAEGMsBGLQHMgsQABiABBjLARi0BzIIEAAYgAQYywEyCxAAGIAEGMsBGLQHSJ8gUABYuhZwAHgBkAEAmAGbAaAB2xCqAQQwLjE3uAEDyAEA-AEBmAIRoALQEcICChAjGMkCGPAFGCfCAgoQIxjwBRjJAhgnwgIEECMYJ8ICCxAAGIAEGIoFGJECwgIREC4YgAQYigUYkQIYxwEY0QPCAgsQLhiABBjHARjRA8ICBRAAGIAEwgIFEC4YgATCAgoQABiABBiKBRhDwgIIEAAYgAQYtAfCAggQLhiABBi0B8ICFBAuGIAEGJcFGNwEGN4EGOAE2AEBwgIIEC4YgAQYywHCAhcQLhiABBjLARiXBRjcBBjeBBjgBNgBAZgDALoGBggBEAEYFJIHBDAuMTegB46uAbIHBDAuMTe4B9ARwgcEMi0xN8gHVYAIAQ&sclient=gws-wiz-serp" target="_blank" class="process-pill-btn" aria-label="Memória de trabalho">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Memória de trabalho
+          </a>
+          <a href="https://www.google.com/search?q=Infer%C3%AAncia+L%C3%B3gica&sca_esv=3293b059aa9c7b4a&biw=1358&bih=636&sxsrf=APpeQnvlww-9zsBezE0th5elH-6_h2BdTw%3A1790436290238&ei=wuO3apaHDqnS5OUPjcS76A0&ved=2ahUKEwiW8Mn4xoyXAxUpKbkGHQ3iDt0Q4dUDegQIBhAM&uact=5&oq=Infer%C3%AAncia+L%C3%B3gica&gs_lp=Egxnd3Mtd2l6LXNlcnAiE0luZmVyw6puY2lhIEzDs2dpY2EyCBAAGIAEGMsBMgYQABgWGB4yBhAAGBYYHjIGEAAYFhgeMgYQABgWGB4yBhAAGBYYHjIIEAAYFhgeGAoyBhAAGBYYHjIGEAAYFhgeMgYQABgWGB5ItAJQAFgAcAB4AZABAJgBkwGgAZMBqgEDMC4xuAEDyAEA-AEC-AEBmAIBoAKdAZgDAJIHAzAuMaAH0AayBwMwLjG4B50BwgcDMi0xyAcHgAgB&sclient=gws-wiz-serp" target="_blank" class="process-pill-btn" aria-label="Inferência Lógica">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Inferência Lógica
+          </a>
+          <a href="https://www.google.com/search?q=Controle+inibit%C3%B3rio&sca_esv=3293b059aa9c7b4a&biw=1358&bih=636&sxsrf=APpeQnuCdH4-pBKFCJOqXu1UBq-ZSOG_OA%3A1790436333307&ei=7eO3avyjEsfI1sQP49-c8QU&ved=2ahUKEwi8zo6Nx4yXAxVHpJUCHeMvJ14Q4dUDegQIBhAM&uact=5&oq=Controle+inibit%C3%B3rio&gs_lp=Egxnd3Mtd2l6LXNlcnAiFENvbnRyb2xlIGluaWJpdMOzcmlvMggQABiABBjLATIIEAAYgAQYywEyCBAAGIAEGMsBMgsQABiABBjLARi0BzIIEAAYgAQYywEyCBAAGIAEGMsBMggQABiABBjLATILEAAYgAQYywEYtAcyCBAAGIAEGMsBMggQABiABBjLAUjDClDuB1juB3ABeAGQAQCYAY0BoAGNAaoBAzAuMbgBA8gBAPgBAvgBAZgCAqACmgHCAgoQABhHGNYEGLADwgIOEAAY5AIY1gQYsAPYAQHCAhcQLhjcBhi4BhjaBhjYAhjIAxiwA9gBAZgDAIgGAZAGD7oGBggBEAEYCZIHAzEuMaAHowayBwMwLjG4B5MBwgcDMi0yyAcIgAgB&sclient=gws-wiz-serp" target="_blank" class="process-pill-btn" aria-label="Controle inibitório">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Controle inibitório
+          </a>
+
+    </div>
+    <!-- Seção de Encerramento (Integrada ao fundo da seção anterior) -->
+    <div class="cta-final-wrapper reveal-on-scroll">
+        <h3 class="cta-final-title">Quer saber mais sobre como você aprende? Vamos agendar uma avaliação!</h3>
+        <a href="https://wa.me/" target="_blank" class="whatsapp-btn cta-final-btn" aria-label="Agendar entrevista cognitiva">
+          <i class="fa-brands fa-whatsapp"></i>
+          Agendar avaliação gratuita
+        </a>
+      </div>
+  
+  </section>
+
+  <!-- Physics Engine (Matter.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+  <script>
+    // ==========================================================================
+    // CRACHÁ INTERATIVO (MATTER.JS)
+    // ==========================================================================
+    (function(){
+      const CONFIG = {
+        imagemURL: 'cracha.png',
+        imgLargura: 160,
+        imgAltura: 220,
+        raioCanto: 14,
+
+        cordao: {
+          segmentos: 5,
+          comprimentoSegmento: 18,
+          espessura: 6,
+          corInicio: '#c20000',
+          corFim: '#800000',
+          separacaoTopo: 45,
+          encontroOffsetY: 18,
+          offsetYSuperior: 80,
+        },
+
+        fisica: {
+          gravidade: 1.8,
+          rigidezCordao: 0.7,
+          amortecimentoCordao: 0.15,
+          rigidezPrendedor: 0.2,
+        },
+
+        ilho: {
+          raio: 5,
+          cor: '#c9c2ac',
+        },
+
+        sombra: {
+          blur: 24,
+          offsetY: 12,
+          alpha: 0.35,
+        }
+      };
+
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      let W, H;
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+      }
+      resize();
+
+      const { Engine, Runner, World, Bodies, Body, Constraint, Mouse, MouseConstraint, Composite } = Matter;
+
+      const engine = Engine.create({
+        positionIterations: 12,
+        velocityIterations: 12,
+        constraintIterations: 6
+      });
+      engine.gravity.y = CONFIG.fisica.gravidade;
+      const world = engine.world;
+
+      let segmentsEsquerdo = [];
+      let segmentsDireito = [];
+
+      function getBadgeTargetX() {
+        return W > 900 ? W * 0.82 : W * 0.75;
+      }
+
+      function buildRig() {
+        Composite.clear(world, false);
+        segmentsEsquerdo = [];
+        segmentsDireito = [];
+
+        const iw = CONFIG.imgLargura;
+        const ih = CONFIG.imgAltura;
+        const raio = CONFIG.raioCanto || 10;
+        const badgeX = getBadgeTargetX();
+        const badgeY = 220;
+
+        window.badge = Bodies.rectangle(badgeX, badgeY, iw, ih, {
+          chamfer: { radius: raio },
+          friction: 0.4,
+          frictionAir: 0.045,
+          density: 0.003,
+          restitution: 0.15,
+          collisionFilter: { group: -1 }
+        });
+        World.add(world, window.badge);
+
+        const encontroY = -(ih/2 - CONFIG.cordao.encontroOffsetY);
+        const separacao = CONFIG.cordao.separacaoTopo;
+        const offsetYSuperior = CONFIG.cordao.offsetYSuperior;
+
+        const anchorPosX = badgeX;
+        const anchorPosY = -offsetYSuperior;
+
+        const anchorEsquerdo = Bodies.circle(anchorPosX - separacao/2, anchorPosY, 3, { 
+          isStatic: true,
+          label: 'anchor_esq'
+        });
+        const anchorDireito = Bodies.circle(anchorPosX + separacao/2, anchorPosY, 3, { 
+          isStatic: true,
+          label: 'anchor_dir'
+        });
+        World.add(world, [anchorEsquerdo, anchorDireito]);
+
+        const SEG_LEN = CONFIG.cordao.comprimentoSegmento;
+        const SEGMENTS = CONFIG.cordao.segmentos;
+
+        function criarCordao(anchor) {
+          let prev = anchor;
+          const segs = [];
+          
+          for (let i = 0; i < SEGMENTS; i++) {
+            const segY = anchor.position.y + (i + 1) * SEG_LEN;
+            const seg = Bodies.circle(
+              anchor.position.x, 
+              segY, 
+              3, {
+              friction: 0, 
+              frictionAir: 0.035, 
+              density: 0.004,
+              collisionFilter: { group: -1 },
+              label: 'cordao'
+            });
+            World.add(world, seg);
+            const c = Constraint.create({
+              bodyA: prev, 
+              bodyB: seg, 
+              length: SEG_LEN,
+              stiffness: CONFIG.fisica.rigidezCordao,
+              damping: CONFIG.fisica.amortecimentoCordao
+            });
+            World.add(world, c);
+            segs.push(seg);
+            prev = seg;
+          }
+
+          const link = Constraint.create({
+            bodyA: prev, 
+            bodyB: window.badge,
+            pointB: { x: 0, y: encontroY },
+            length: 2,
+            stiffness: CONFIG.fisica.rigidezCordao * 0.8,
+            damping: CONFIG.fisica.amortecimentoCordao
+          });
+          World.add(world, link);
+          
+          return segs;
+        }
+
+        segmentsEsquerdo = criarCordao(anchorEsquerdo);
+        segmentsDireito = criarCordao(anchorDireito);
+        
+        window.anchorEsquerdo = anchorEsquerdo;
+        window.anchorDireito = anchorDireito;
+      }
+      buildRig();
+
+      let leftWall, rightWall, floor;
+      function buildBounds() {
+        if (leftWall) World.remove(world, [leftWall, rightWall, floor]);
+        leftWall = Bodies.rectangle(-25, H / 2, 50, H * 3, { isStatic: true });
+        rightWall = Bodies.rectangle(W + 25, H / 2, 50, H * 3, { isStatic: true });
+        floor = Bodies.rectangle(W / 2, H + 300, W * 3, 60, { isStatic: true });
+        World.add(world, [leftWall, rightWall, floor]);
+      }
+      buildBounds();
+
+      const mouse = Mouse.create(canvas);
+      const mouseConstraint = MouseConstraint.create(engine, {
+        mouse,
+        constraint: {
+          stiffness: CONFIG.fisica.rigidezPrendedor,
+          damping: 0.15,
+          render: { visible: false }
+        }
+      });
+      World.add(world, mouseConstraint);
+
+      window.addEventListener('mousemove', (e) => {
+        if (!window.badge || window.innerWidth <= 900) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const { x, y } = window.badge.position;
+        const iw = CONFIG.imgLargura;
+        const ih = CONFIG.imgAltura;
+
+        const isOverBadge = (
+          mouseX >= x - iw / 2 - 15 &&
+          mouseX <= x + iw / 2 + 15 &&
+          mouseY >= y - ih / 2 - 15 &&
+          mouseY <= y + ih / 2 + 15
+        );
+
+        if (isOverBadge || mouseConstraint.body) {
+          canvas.style.pointerEvents = 'auto';
+          canvas.style.cursor = mouseConstraint.body ? 'grabbing' : 'grab';
+        } else {
+          canvas.style.pointerEvents = 'none';
+          canvas.style.cursor = 'default';
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!mouseConstraint.body) {
+          canvas.style.cursor = 'default';
+        }
+      });
+
+      Runner.run(Runner.create(), engine);
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = CONFIG.imagemURL;
+      let imgReady = false;
+      img.onload = () => { imgReady = true; };
+      img.onerror = () => { imgReady = false; };
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function drawCords() {
+        drawSingleCord(segmentsEsquerdo, window.anchorEsquerdo);
+        drawSingleCord(segmentsDireito, window.anchorDireito);
+      }
+
+      function drawSingleCord(segs, anchor) {
+        if (!anchor || !segs || segs.length === 0) return;
+        const pts = [{ x: anchor.position.x, y: anchor.position.y }, ...segs.map(s => s.position)];
+        if (pts.length < 2) return;
+
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = CONFIG.cordao.espessura + 2;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y + 2);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y + 2);
+        ctx.stroke();
+
+        const grad = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[pts.length-1].x, pts[pts.length-1].y);
+        grad.addColorStop(0, CONFIG.cordao.corInicio);
+        grad.addColorStop(1, CONFIG.cordao.corFim);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = CONFIG.cordao.espessura;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawImageBadge() {
+        const b = window.badge;
+        if (!b) return;
+        const { x, y } = b.position;
+        const angle = b.angle;
+        const iw = CONFIG.imgLargura;
+        const ih = CONFIG.imgAltura;
+        const raio = CONFIG.raioCanto || 10;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.save();
+        ctx.shadowColor = `rgba(0,0,0,${CONFIG.sombra.alpha})`;
+        ctx.shadowBlur = CONFIG.sombra.blur;
+        ctx.shadowOffsetY = CONFIG.sombra.offsetY;
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.fillStyle = 'rgba(0,0,0,0.01)';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.clip();
+
+        if (imgReady) {
+          ctx.drawImage(img, -iw/2, -ih/2, iw, ih);
+        } else {
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(-iw/2, -ih/2, iw, ih);
+          ctx.fillStyle = '#666666';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Carregando...', 0, 0);
+        }
+        ctx.restore();
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.stroke();
+
+        const ilhoY = -ih/2 + CONFIG.cordao.encontroOffsetY;
+        ctx.fillStyle = CONFIG.ilho.cor;
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, ilhoY, CONFIG.ilho.raio, CONFIG.ilho.raio, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(0, ilhoY, CONFIG.ilho.raio, CONFIG.ilho.raio, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        drawCords();
+        drawImageBadge();
+        requestAnimationFrame(frame);
+      }
+      frame();
+
+      window.addEventListener('resize', () => {
+        resize();
+        if (window.anchorEsquerdo && window.anchorDireito && window.badge) {
+          const separacao = CONFIG.cordao.separacaoTopo;
+          const offsetYSuperior = CONFIG.cordao.offsetYSuperior;
+          const anchorPosX = getBadgeTargetX();
+          const anchorPosY = -offsetYSuperior;
+          
+          Body.setPosition(window.anchorEsquerdo, { 
+            x: anchorPosX - separacao/2, 
+            y: anchorPosY
+          });
+          Body.setPosition(window.anchorDireito, { 
+            x: anchorPosX + separacao/2, 
+            y: anchorPosY
+          });
+        }
+        buildBounds();
+      });
+
+    })();
+
+    // ==========================================================================
+    // SCRIPTS DA PÁGINA PRINCIPAL
+    // ==========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Controls Gaveta / Drawer
+      const openDrawerBtn = document.getElementById('openDrawerBtn');
+      const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+      const drawerOverlay = document.getElementById('drawerOverlay');
+      const drawerPanel = document.getElementById('drawerPanel');
+
+      function openDrawer() {
+        drawerOverlay.classList.add('active');
+        drawerPanel.classList.add('active');
+      }
+
+      function closeDrawer() {
+        drawerOverlay.classList.remove('active');
+        drawerPanel.classList.remove('active');
+      }
+
+      openDrawerBtn.addEventListener('click', openDrawer);
+      closeDrawerBtn.addEventListener('click', closeDrawer);
+      drawerOverlay.addEventListener('click', closeDrawer);
+
+      // Smooth Image Loader
+      const img = document.getElementById('centerImage');
+      
+      function revealImg() {
+        img.classList.add('loaded');
+      }
+
+      if (img.complete) {
+        revealImg();
+      } else {
+        img.addEventListener('load', revealImg);
+      }
+
+      // Typewriter Real
+      const textToType = "Educação para o futuro";
+      const titleElement = document.getElementById('typewriterTitle');
+      let index = 0;
+      const speed = 85;
+      const delayStart = 700;
+
+      function typeWriter() {
+        if (index < textToType.length) {
+          titleElement.textContent += textToType.charAt(index);
+          index++;
+          setTimeout(typeWriter, speed);
+        }
+      }
+
+      setTimeout(typeWriter, delayStart);
+
+      // Smooth Scroll Revelations
+      const observerOptions = {
+        threshold: 0.15
+      };
+
+      const scrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            
+            const counters = entry.target.querySelectorAll('.counter');
+            if (counters.length > 0) {
+              counters.forEach(counter => startCounter(counter));
+            }
+            
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll('.reveal-on-scroll').forEach(el => scrollObserver.observe(el));
+
+      // Animação de Contador
+      function startCounter(counter) {
+        const target = parseFloat(counter.getAttribute('data-target'));
+        const suffix = counter.getAttribute('data-suffix') || '';
+        const decimals = parseInt(counter.getAttribute('data-decimals')) || 0;
+        const duration = 2000;
+        const startTime = performance.now();
+
+        function updateCount(currentTime) {
+          const elapsedTime = currentTime - startTime;
+          const progress = Math.min(elapsedTime / duration, 1);
+          
+          const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+          const currentValue = easeProgress * target;
+
+          counter.textContent = currentValue.toFixed(decimals) + suffix;
+
+          if (progress < 1) {
+            requestAnimationFrame(updateCount);
+          } else {
+            counter.textContent = target.toFixed(decimals) + suffix;
+          }
+        }
+
+        requestAnimationFrame(updateCount);
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Crachá Interativo</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Canvas do Crachá */
+    #c {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: grab;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="c"></canvas>
+
+  <!-- Physics Engine (Matter.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+  <script>
+    (function(){
+      const CONFIG = {
+        imagemURL: 'cracha.png',
+        imgLargura: 180,
+        imgAltura: 248,
+        raioCanto: 16,
+
+        cordao: {
+          segmentos: 5,
+          comprimentoSegmento: 20,
+          espessura: 7,
+          corInicio: '#d6564f',
+          corFim: '#a83a3a',
+          separacaoTopo: 50,
+          encontroOffsetY: 20,
+          offsetYSuperior: 100,
+        },
+
+        fisica: {
+          gravidade: 2,
+          rigidezCordao: 0.7,
+          amortecimentoCordao: 0.15,
+          rigidezPrendedor: 0.2,
+        },
+
+        ilho: {
+          raio: 6,
+          cor: '#c9c2ac',
+        },
+
+        sombra: {
+          blur: 32,
+          offsetY: 16,
+          alpha: 0.25,
+        }
+      };
+
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      let W, H;
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+      }
+      resize();
+
+      const { Engine, Runner, World, Bodies, Body, Constraint, Mouse, MouseConstraint, Composite } = Matter;
+
+      const engine = Engine.create({
+        positionIterations: 12,
+        velocityIterations: 12,
+        constraintIterations: 6
+      });
+      engine.gravity.y = CONFIG.fisica.gravidade;
+      const world = engine.world;
+
+      let segmentsEsquerdo = [];
+      let segmentsDireito = [];
+
+      function getBadgeTargetX() {
+        return W / 2;
+      }
+
+      function buildRig() {
+        Composite.clear(world, false);
+        segmentsEsquerdo = [];
+        segmentsDireito = [];
+
+        const iw = CONFIG.imgLargura;
+        const ih = CONFIG.imgAltura;
+        const raio = CONFIG.raioCanto || 10;
+        const badgeX = getBadgeTargetX();
+        const badgeY = 320;
+
+        window.badge = Bodies.rectangle(badgeX, badgeY, iw, ih, {
+          chamfer: { radius: raio },
+          friction: 0.4,
+          frictionAir: 0.045,
+          density: 0.003,
+          restitution: 0.15,
+          collisionFilter: { group: -1 }
+        });
+        World.add(world, window.badge);
+
+        const encontroY = -(ih/2 - CONFIG.cordao.encontroOffsetY);
+        const separacao = CONFIG.cordao.separacaoTopo;
+        const offsetYSuperior = CONFIG.cordao.offsetYSuperior;
+
+        const anchorPosX = badgeX;
+        const anchorPosY = -offsetYSuperior;
+
+        const anchorEsquerdo = Bodies.circle(anchorPosX - separacao/2, anchorPosY, 3, { 
+          isStatic: true,
+          label: 'anchor_esq'
+        });
+        const anchorDireito = Bodies.circle(anchorPosX + separacao/2, anchorPosY, 3, { 
+          isStatic: true,
+          label: 'anchor_dir'
+        });
+        World.add(world, [anchorEsquerdo, anchorDireito]);
+
+        const SEG_LEN = CONFIG.cordao.comprimentoSegmento;
+        const SEGMENTS = CONFIG.cordao.segmentos;
+
+        function criarCordao(anchor) {
+          let prev = anchor;
+          const segs = [];
+          
+          for (let i = 0; i < SEGMENTS; i++) {
+            const segY = anchor.position.y + (i + 1) * SEG_LEN;
+            const seg = Bodies.circle(
+              anchor.position.x, 
+              segY, 
+              3, {
+              friction: 0, 
+              frictionAir: 0.035, 
+              density: 0.004,
+              collisionFilter: { group: -1 },
+              label: 'cordao'
+            });
+            World.add(world, seg);
+            const c = Constraint.create({
+              bodyA: prev, 
+              bodyB: seg, 
+              length: SEG_LEN,
+              stiffness: CONFIG.fisica.rigidezCordao,
+              damping: CONFIG.fisica.amortecimentoCordao
+            });
+            World.add(world, c);
+            segs.push(seg);
+            prev = seg;
+          }
+
+          const link = Constraint.create({
+            bodyA: prev, 
+            bodyB: window.badge,
+            pointB: { x: 0, y: encontroY },
+            length: 2,
+            stiffness: CONFIG.fisica.rigidezCordao * 0.8,
+            damping: CONFIG.fisica.amortecimentoCordao
+          });
+          World.add(world, link);
+          
+          return segs;
+        }
+
+        segmentsEsquerdo = criarCordao(anchorEsquerdo);
+        segmentsDireito = criarCordao(anchorDireito);
+        
+        window.anchorEsquerdo = anchorEsquerdo;
+        window.anchorDireito = anchorDireito;
+      }
+      buildRig();
+
+      let leftWall, rightWall, floor;
+      function buildBounds() {
+        if (leftWall) World.remove(world, [leftWall, rightWall, floor]);
+        leftWall = Bodies.rectangle(-25, H / 2, 50, H * 3, { isStatic: true });
+        rightWall = Bodies.rectangle(W + 25, H / 2, 50, H * 3, { isStatic: true });
+        floor = Bodies.rectangle(W / 2, H + 300, W * 3, 60, { isStatic: true });
+        World.add(world, [leftWall, rightWall, floor]);
+      }
+      buildBounds();
+
+      const mouse = Mouse.create(canvas);
+      const mouseConstraint = MouseConstraint.create(engine, {
+        mouse,
+        constraint: {
+          stiffness: CONFIG.fisica.rigidezPrendedor,
+          damping: 0.15,
+          render: { visible: false }
+        }
+      });
+      World.add(world, mouseConstraint);
+
+      canvas.addEventListener('mousedown', () => canvas.style.cursor = 'grabbing');
+      window.addEventListener('mouseup', () => canvas.style.cursor = 'grab');
+
+      Runner.run(Runner.create(), engine);
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = CONFIG.imagemURL;
+      let imgReady = false;
+      img.onload = () => { imgReady = true; };
+      img.onerror = () => { imgReady = false; };
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function drawCords() {
+        drawSingleCord(segmentsEsquerdo, window.anchorEsquerdo);
+        drawSingleCord(segmentsDireito, window.anchorDireito);
+      }
+
+      function drawSingleCord(segs, anchor) {
+        if (!anchor || !segs || segs.length === 0) return;
+        const pts = [{ x: anchor.position.x, y: anchor.position.y }, ...segs.map(s => s.position)];
+        if (pts.length < 2) return;
+
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = CONFIG.cordao.espessura + 2;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y + 2);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y + 2);
+        ctx.stroke();
+
+        const grad = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[pts.length-1].x, pts[pts.length-1].y);
+        grad.addColorStop(0, CONFIG.cordao.corInicio);
+        grad.addColorStop(1, CONFIG.cordao.corFim);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = CONFIG.cordao.espessura;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawImageBadge() {
+        const b = window.badge;
+        if (!b) return;
+        const { x, y } = b.position;
+        const angle = b.angle;
+        const iw = CONFIG.imgLargura;
+        const ih = CONFIG.imgAltura;
+        const raio = CONFIG.raioCanto || 10;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.save();
+        ctx.shadowColor = `rgba(0,0,0,${CONFIG.sombra.alpha})`;
+        ctx.shadowBlur = CONFIG.sombra.blur;
+        ctx.shadowOffsetY = CONFIG.sombra.offsetY;
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.fillStyle = 'rgba(0,0,0,0.01)';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.clip();
+
+        if (imgReady) {
+          ctx.drawImage(img, -iw/2, -ih/2, iw, ih);
+        } else {
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(-iw/2, -ih/2, iw, ih);
+          ctx.fillStyle = '#666666';
+          ctx.font = '14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('Carregando...', 0, 0);
+        }
+        ctx.restore();
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, -iw/2, -ih/2, iw, ih, raio);
+        ctx.stroke();
+
+        const ilhoY = -ih/2 + CONFIG.cordao.encontroOffsetY;
+        ctx.fillStyle = CONFIG.ilho.cor;
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, ilhoY, CONFIG.ilho.raio, CONFIG.ilho.raio, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(0, ilhoY, CONFIG.ilho.raio, CONFIG.ilho.raio, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        drawCords();
+        drawImageBadge();
+        requestAnimationFrame(frame);
+      }
+      frame();
+
+      window.addEventListener('resize', () => {
+        resize();
+        if (window.anchorEsquerdo && window.anchorDireito && window.badge) {
+          const separacao = CONFIG.cordao.separacaoTopo;
+          const offsetYSuperior = CONFIG.cordao.offsetYSuperior;
+          const anchorPosX = getBadgeTargetX();
+          const anchorPosY = -offsetYSuperior;
+          
+          Body.setPosition(window.anchorEsquerdo, { 
+            x: anchorPosX - separacao/2, 
+            y: anchorPosY
+          });
+          Body.setPosition(window.anchorDireito, { 
+            x: anchorPosX + separacao/2, 
+            y: anchorPosY
+          });
+        }
+        buildBounds();
+      });
+
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Simulador de Mensalidade - @dicarvalho.prof</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --mars-rubi: #c20000;
+            --dark-red: #920f0b;
+            --mars-bg: #000000;
+            --mars-border: #1a1a1a;
+            --mars-glow: rgba(194, 0, 0, 0.2);
+            --text-main: #dedcd5;
+        }
+
+        /* Oculta barras de rolagem mantendo a navegação funcional */
+        html, body {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        body::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
+        }
+
+        body {
+            background: #000000;
+            position: relative;
+            overflow-x: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--mars-bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px 20px;
+            box-sizing: border-box;
+        }
+
+        /* Efeito de grade sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 29px,
+                    rgba(194, 0, 0, 0.08) 29px,
+                    rgba(194, 0, 0, 0.08) 30px
+                ),
+                repeating-linear-gradient(
+                    180deg,
+                    transparent,
+                    transparent 29px,
+                    rgba(194, 0, 0, 0.08) 29px,
+                    rgba(194, 0, 0, 0.08) 30px
+                );
+            background-size: 30px 30px;
+        }
+
+        /* ==========================================================================
+           BOTÃO MARCADOR FLUTUANTE E MENU GAVETA (Padrão Metodologia)
+           ========================================================================== */
+        .nav-drawer-btn {
+            position: fixed;
+            top: 1.2rem;
+            left: -14px;
+            z-index: 1000;
+            background-color: var(--mars-rubi);
+            color: #ffffff;
+            border: 1px solid rgba(222, 220, 213, 0.2);
+            border-left: none;
+            padding: 0.6rem 0.8rem 0.6rem 1.2rem;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 3px 0 12px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .nav-drawer-btn:hover {
+            background-color: var(--dark-red);
+            transform: translateX(4px);
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 1050;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .drawer-panel {
+            position: fixed;
+            top: 0;
+            left: -260px;
+            width: 240px;
+            height: 100vh;
+            background-color: #080808;
+            border-right: 1px solid rgba(222, 220, 213, 0.1);
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .drawer-panel.active {
+            left: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(222, 220, 213, 0.1);
+            margin-bottom: 1.2rem;
+        }
+
+        .drawer-title {
+            color: var(--text-main);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .drawer-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .drawer-close-btn:hover {
+            opacity: 1;
+            color: var(--mars-rubi);
+        }
+
+        .drawer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .drawer-link {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .drawer-link i {
+            width: 16px;
+            text-align: center;
+            color: var(--mars-rubi);
+            font-size: 0.82rem;
+        }
+
+        .drawer-link:hover {
+            background-color: rgba(194, 0, 0, 0.12);
+            color: #ffffff;
+        }
+
+        /* CONTAINER PRINCIPAL COMPACTO (Foco em desktop sem scroll) */
+        .simulator-container {
+            max-width: 920px;
+            width: 100%;
+            background: linear-gradient(145deg, #0a0a0a, #000000);
+            border: 1px solid var(--mars-border);
+            border-radius: 16px;
+            padding: 22px 28px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(194, 0, 0, 0.12);
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .simulator-header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .simulator-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: #fff;
+        }
+
+        .simulator-subtitle {
+            font-size: 0.65rem;
+            color: #888;
+            letter-spacing: 0.5px;
+        }
+
+        .simulator-subtitle .highlight {
+            color: #c20000;
+            font-weight: 500;
+        }
+
+        .simulator-left, .simulator-right {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-label i {
+            color: #c20000;
+            margin-right: 5px;
+        }
+
+        .form-label .helper {
+            font-weight: 300;
+            text-transform: none;
+            color: #666;
+            font-size: 0.55rem;
+            display: block;
+            margin-top: 1px;
+            letter-spacing: 0;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 9px 12px;
+            background: #050505;
+            border: 1px solid var(--mars-border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.8rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #c20000;
+            box-shadow: 0 0 12px rgba(194, 0, 0, 0.4);
+        }
+
+        .form-input::placeholder {
+            color: #444;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 12px;
+            background: #050505;
+            border: 1px solid var(--mars-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .checkbox-group:hover {
+            border-color: #333;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #c20000;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-group label {
+            font-size: 0.65rem;
+            color: #ccc;
+            cursor: pointer;
+            line-height: 1.2;
+        }
+
+        .checkbox-group .discount-badge {
+            margin-left: auto;
+            font-size: 0.45rem;
+            color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 2px 6px;
+            border-radius: 20px;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            white-space: nowrap;
+        }
+
+        .modalidade-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .modalidade-btn {
+            padding: 9px 8px;
+            background: #050505;
+            border: 1px solid var(--mars-border);
+            border-radius: 10px;
+            color: #777;
+            font-size: 0.65rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .modalidade-btn i {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .modalidade-btn .modalidade-desc {
+            font-size: 0.45rem;
+            font-weight: 300;
+            color: #555;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .modalidade-btn.active {
+            border-color: #c20000;
+            background: rgba(194, 0, 0, 0.08);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(194, 0, 0, 0.25);
+        }
+
+        .modalidade-btn.active .modalidade-desc {
+            color: #999;
+        }
+
+        .result-box {
+            background: rgba(194, 0, 0, 0.03);
+            border: 1px solid var(--mars-border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 95px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-box.has-discount {
+            border-color: rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 0.03);
+        }
+
+        .result-box .hidden-price {
+            font-size: 0.7rem;
+            color: #555;
+        }
+
+        .result-box .hidden-price i {
+            color: #c20000;
+            margin-right: 5px;
+        }
+
+        .result-price {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #fff;
+            display: none;
+        }
+
+        .result-price.visible {
+            display: block;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-price .currency {
+            font-size: 0.9rem;
+            color: #c20000;
+        }
+
+        .result-price .value {
+            color: #c20000;
+        }
+
+        .result-details {
+            font-size: 0.6rem;
+            color: #888;
+            margin-top: 4px;
+            line-height: 1.3;
+            display: none;
+        }
+
+        .result-details.visible {
+            display: block;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .result-info {
+            font-size: 0.5rem;
+            color: #555;
+            margin-top: 6px;
+            line-height: 1.3;
+            border-top: 1px solid var(--mars-border);
+            padding-top: 6px;
+            width: 100%;
+        }
+
+        .btn-calculate, .btn-download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(145deg, #c20000, #8b0000);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(194, 0, 0, 0.25);
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(194, 0, 0, 0.4);
+        }
+
+        .btn-download {
+            background: #080808;
+            border: 1px solid var(--mars-border);
+            color: #555;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .btn-download.active {
+            background: linear-gradient(145deg, #c20000, #8b0000);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(194, 0, 0, 0.25);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .btn-download.active:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(194, 0, 0, 0.4);
+        }
+
+        .simulator-footer {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--mars-border);
+            padding-top: 10px;
+            margin-top: 2px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.6rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+
+        .back-link i {
+            color: #c20000;
+        }
+
+        .disclaimer {
+            font-size: 0.48rem;
+            color: #444;
+            text-align: right;
+            max-width: 500px;
+            line-height: 1.3;
+        }
+
+        .disclaimer strong {
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                justify-content: flex-start;
+                padding-top: 55px;
+            }
+
+            .simulator-container {
+                grid-template-columns: 1fr;
+                padding: 16px;
+                max-width: 460px;
+                margin-top: 10px;
+            }
+
+            .simulator-footer {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            .disclaimer {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botão e Menu Gaveta de Acesso Rápido -->
+    <button class="nav-drawer-btn" id="openDrawerBtn" aria-label="Abrir menu de navegação">
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>
+
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside class="drawer-panel" id="drawerPanel">
+        <div class="drawer-header">
+            <span class="drawer-title">Acesso rápido</span>
+            <button class="drawer-close-btn" id="closeDrawerBtn" aria-label="Fechar menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <nav class="drawer-links">
+            <a href="index.html" class="drawer-link">
+                <i class="fa-solid fa-house"></i> Início
+            </a>
+            <a href="metodo.html" class="drawer-link">
+                <i class="fa-solid fa-book-open"></i> Método
+              </a>
+              <a href="https://dididoingles.github.io/library/" class="drawer-link">
+                <i class="fa-solid fa-folder-open"></i> Materiais
+              </a>
+              <a href="soualuno.html" class="drawer-link">
+                <i class="fa-solid fa-user-graduate"></i> Sou Aluno
+              </a>
+              <a href="https://www.instagram.com/dicarvalho.prof/" target="_blank" rel="noopener noreferrer" class="drawer-link">
+                <i class="fa-brands fa-instagram"></i> Instagram
+              </a>
+        </nav>
+    </aside>
+
+    <div class="simulator-container">
+        <div class="simulator-header">
+            <div class="simulator-title">
+                <i class="fas fa-calculator" style="color:#c20000; margin-right: 6px;"></i>
+                Simulador de Mensalidade
+            </div>
+            <div class="simulator-subtitle">
+                Preencha os dados e clique em <span class="highlight">calcular</span> para descobrir o valor
+            </div>
+        </div>
+
+        <!-- COLUNA ESQUERDA: ENTRADAS -->
+        <div class="simulator-left">
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-user"></i>Seu nome e sobrenome</label>
+                <input type="text" class="form-input" id="studentName" placeholder="Digite seu nome completo" value="">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-layer-group"></i>Modalidade
+                    <span class="helper">Escolha como deseja aprender</span>
+                </label>
+                <div class="modalidade-selector">
+                    <button class="modalidade-btn active" data-modalidade="mensal" id="btnMensal">
+                        <i class="fas fa-calendar-alt"></i>
+                        Mensalidade
+                        <span class="modalidade-desc">60min · material incluso</span>
+                    </button>
+                    <button class="modalidade-btn" data-modalidade="avulsa" id="btnAvulsa">
+                        <i class="fas fa-clock"></i>
+                        Aula Avulsa
+                        <span class="modalidade-desc">Aula única · 60min</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="descontosArea">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-graduation-cap"></i>Descontos
+                        <span class="helper">Selecione as opções aplicáveis</span>
+                    </label>
+                    
+                    <div class="checkbox-group" id="discEscolaPublica">
+                        <input type="checkbox" id="escolaPublica">
+                        <label for="escolaPublica">Aluno de escola pública a vida toda</label>
+                        <span class="discount-badge">aplica desconto</span>
+                    </div>
+
+                    <div class="checkbox-group" id="discRenda">
+                        <input type="checkbox" id="rendaBaixa">
+                        <label for="rendaBaixa">Renda de até 2 salários mínimos</label>
+                        <span class="discount-badge">aplica desconto</span>
+                    </div>
+
+                    <div class="checkbox-group" id="discAmigo">
+                        <input type="checkbox" id="amigoAluno">
+                        <label for="amigoAluno">É amigo de um aluno ou ex-aluno</label>
+                        <span class="discount-badge">aplica desconto</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: RESULTADOS E AÇÕES -->
+        <div class="simulator-right">
+            <div class="result-box" id="resultBox">
+                <div class="hidden-price" id="hiddenPrice">
+                    <i class="fas fa-lock"></i>
+                    Aguardando cálculo...
+                </div>
+                <div class="result-price" id="resultPrice">
+                    <span class="currency">R$</span>
+                    <span class="value" id="priceDisplay">0,00</span>
+                </div>
+                <div class="result-details" id="resultDetails">
+                    <span id="modalidadeDisplay">Mensalidade</span>
+                    <span id="discountDisplay"></span>
+                </div>
+                <div class="result-info" id="resultInfo">
+                    <i class="fas fa-info-circle" style="color:#c20000; margin-right:4px;"></i>
+                    Preencha os campos e clique em calcular
+                </div>
+            </div>
+
+            <button class="btn-calculate" id="btnCalculate">
+                <i class="fas fa-calculator"></i>
+                Calcular Valor
+            </button>
+
+            <button class="btn-download" id="btnDownload">
+                <i class="fas fa-file-pdf"></i>
+                Baixar Proposta em PDF
+            </button>
+        </div>
+
+        <!-- RODAPE DO CARD -->
+        <div class="simulator-footer">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao início
+            </a>
+
+            <div class="disclaimer">
+                <strong>Proposta extra-oficial.</strong> Válida apenas para hoje. Sujeita a alinhamento prévio.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        const PDF_CONFIG = {
+            cores: {
+                principal: [200, 0, 0],
+                secundaria: [0, 0, 0],
+                texto: [0, 0, 0],
+                textoClaro: [100, 100, 100],
+                destaque: [200, 0, 0]
+            },
+            textos: {
+                titulo: 'Prof.a Diandra de Inglês',
+                subtitulo: 'Proposta de Aulas Particulares',
+                rodape: '@dicarvalho.prof · Sapere Aude',
+                whatsapp: '+55 16 99327-2278',
+                permuta: 'Este valor pode ser negociado ou trocado por permuta (troca de servicos) com o professor de sua preferencia.',
+                extraOficial: 'PROPOSTA EXTRA-OFFICIAL',
+                extraOficialTexto: 'Valida apenas para hoje. Os valores podem ser diferentes no momento da contratacao.'
+            },
+            tamanhos: {
+                titulo: 20, subtitulo: 11, nomeAluno: 12, modalidade: 11,
+                descontos: 10, valorFinal: 16, permuta: 10, whatsapp: 11,
+                extraOficialTitulo: 10, extraOficialTexto: 9, rodape: 9
+            },
+            margens: { esquerda: 20, direita: 20, topo: 25 }
+        };
+
+        const nameInput = document.getElementById('studentName');
+        const btnMensal = document.getElementById('btnMensal');
+        const btnAvulsa = document.getElementById('btnAvulsa');
+        const escolaPublica = document.getElementById('escolaPublica');
+        const rendaBaixa = document.getElementById('rendaBaixa');
+        const amigoAluno = document.getElementById('amigoAluno');
+        const priceDisplay = document.getElementById('priceDisplay');
+        const modalidadeDisplay = document.getElementById('modalidadeDisplay');
+        const discountDisplay = document.getElementById('discountDisplay');
+        const resultInfo = document.getElementById('resultInfo');
+        const resultBox = document.getElementById('resultBox');
+        const resultPrice = document.getElementById('resultPrice');
+        const resultDetails = document.getElementById('resultDetails');
+        const hiddenPrice = document.getElementById('hiddenPrice');
+        const descontosArea = document.getElementById('descontosArea');
+        const btnCalculate = document.getElementById('btnCalculate');
+        const btnDownload = document.getElementById('btnDownload');
+
+        const VALOR_MENSAL = 480;
+        const VALOR_AVULSO = 150;
+        const DESCONTO_MAXIMO = 100;
+
+        let modalidadeAtual = 'mensal';
+        let valorCalculado = false;
+
+        // Gerenciamento do Menu Gaveta (Acesso Rápido)
+        document.addEventListener('DOMContentLoaded', () => {
+            const openDrawerBtn = document.getElementById('openDrawerBtn');
+            const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+            const drawerOverlay = document.getElementById('drawerOverlay');
+            const drawerPanel = document.getElementById('drawerPanel');
+
+            function openDrawer() {
+                drawerOverlay.classList.add('active');
+                drawerPanel.classList.add('active');
+            }
+
+            function closeDrawer() {
+                drawerOverlay.classList.remove('active');
+                drawerPanel.classList.remove('active');
+            }
+
+            openDrawerBtn.addEventListener('click', openDrawer);
+            closeDrawerBtn.addEventListener('click', closeDrawer);
+            drawerOverlay.addEventListener('click', closeDrawer);
+        });
+
+        function calcularValor() {
+            if (modalidadeAtual === 'avulsa') {
+                return { valor: VALOR_AVULSO, descontoTotal: 0, descontos: [], temDesconto: false };
+            }
+
+            let descontoTotal = 0;
+            const descontosAplicados = [];
+
+            if (escolaPublica.checked) {
+                descontoTotal += 30;
+                descontosAplicados.push('Escola pública');
+            }
+            if (rendaBaixa.checked) {
+                descontoTotal += 50;
+                descontosAplicados.push('Renda até 2 SM');
+            }
+            if (amigoAluno.checked) {
+                descontoTotal += 50;
+                descontosAplicados.push('Amigo de aluno');
+            }
+
+            if (descontoTotal > DESCONTO_MAXIMO) descontoTotal = DESCONTO_MAXIMO;
+
+            return {
+                valor: VALOR_MENSAL - descontoTotal,
+                descontoTotal: descontoTotal,
+                descontos: descontosAplicados,
+                temDesconto: descontosAplicados.length > 0
+            };
+        }
+
+        function mostrarResultado() {
+            const nome = nameInput.value.trim();
+            if (!nome) {
+                alert('Por favor, digite seu nome antes de calcular.');
+                return;
+            }
+
+            const resultado = calcularValor();
+            priceDisplay.textContent = resultado.valor.toFixed(2).replace('.', ',');
+            resultPrice.classList.add('visible');
+            hiddenPrice.style.display = 'none';
+
+            if (modalidadeAtual === 'mensal') {
+                modalidadeDisplay.textContent = 'Mensalidade';
+                if (resultado.temDesconto) {
+                    discountDisplay.textContent = ' • Desconto aplicado';
+                    discountDisplay.style.color = '#4caf50';
+                    resultBox.classList.add('has-discount');
+                    resultInfo.innerHTML = '<i class="fas fa-check-circle" style="color:#4caf50; margin-right:4px;"></i> ' + resultado.descontos.join(', ');
+                } else {
+                    discountDisplay.textContent = ' • Sem descontos';
+                    discountDisplay.style.color = '#888';
+                    resultBox.classList.remove('has-discount');
+                    resultInfo.innerHTML = '<i class="fas fa-info-circle" style="color:#c20000; margin-right:4px;"></i> Nenhum desconto selecionado';
+                }
+            } else {
+                modalidadeDisplay.textContent = 'Aula Avulsa';
+                discountDisplay.textContent = ' • Sem descontos';
+                discountDisplay.style.color = '#888';
+                resultBox.classList.remove('has-discount');
+                resultInfo.innerHTML = '<i class="fas fa-info-circle" style="color:#c20000; margin-right:4px;"></i> Aula única de 60 minutos';
+            }
+
+            resultDetails.classList.add('visible');
+            valorCalculado = true;
+            btnDownload.classList.add('active');
+        }
+
+        function setModalidade(modalidade) {
+            modalidadeAtual = modalidade;
+            btnMensal.classList.toggle('active', modalidade === 'mensal');
+            btnAvulsa.classList.toggle('active', modalidade === 'avulsa');
+
+            if (modalidade === 'avulsa') {
+                descontosArea.style.opacity = '0.3';
+                descontosArea.style.pointerEvents = 'none';
+            } else {
+                descontosArea.style.opacity = '1';
+                descontosArea.style.pointerEvents = 'all';
+            }
+
+            if (valorCalculado) resetarResultado();
+        }
+
+        function resetarResultado() {
+            valorCalculado = false;
+            resultPrice.classList.remove('visible');
+            resultDetails.classList.remove('visible');
+            hiddenPrice.style.display = 'block';
+            btnDownload.classList.remove('active');
+            resultInfo.innerHTML = '<i class="fas fa-info-circle" style="color:#c20000; margin-right:4px;"></i> Preencha os campos e clique em calcular';
+            resultBox.classList.remove('has-discount');
+        }
+
+        function gerarPDF() {
+            const nome = nameInput.value.trim() || 'Aluno(a)';
+            const resultado = calcularValor();
+            const valorFormatado = resultado.valor.toFixed(2).replace('.', ',');
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+            let modalidadeTexto = modalidadeAtual === 'mensal' ? 'Mensalidade' : 'Aula Avulsa';
+            let descontosTexto = modalidadeAtual === 'mensal' && resultado.temDesconto ? 'Descontos: ' + resultado.descontos.join(', ') : 'Sem descontos.';
+
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = 210;
+            const margin = PDF_CONFIG.margens.esquerda;
+            const maxWidth = pageWidth - (margin * 2);
+            let y = PDF_CONFIG.margens.topo;
+
+            const corPrincipal = PDF_CONFIG.cores.principal;
+            const corTexto = PDF_CONFIG.cores.texto;
+            const corDestaque = PDF_CONFIG.cores.destaque;
+
+            function centerText(text, y, size, style = 'bold', color = corPrincipal) {
+                doc.setFontSize(size);
+                doc.setFont('helvetica', style);
+                doc.setTextColor(color[0], color[1], color[2]);
+                const textWidth = doc.getTextWidth(text);
+                const x = (pageWidth - textWidth) / 2;
+                doc.text(text, x, y);
+                doc.setTextColor(corTexto[0], corTexto[1], corTexto[2]);
+                return y + size * 0.8;
+            }
+
+            function addLine(text, y, size, style = 'normal', color = corTexto) {
+                doc.setFontSize(size);
+                doc.setFont('helvetica', style);
+                doc.setTextColor(color[0], color[1], color[2]);
+                const lines = doc.splitTextToSize(text, maxWidth);
+                doc.text(lines, margin, y);
+                doc.setTextColor(corTexto[0], corTexto[1], corTexto[2]);
+                return y + (lines.length * size * 0.6) + 2;
+            }
+
+            function addSeparator(y) {
+                doc.setDrawColor(corPrincipal[0], corPrincipal[1], corPrincipal[2]);
+                doc.line(margin, y, pageWidth - margin, y);
+                return y + 5;
+            }
+
+            y = centerText(PDF_CONFIG.textos.titulo, y, PDF_CONFIG.tamanhos.titulo, 'bold');
+            y = centerText(PDF_CONFIG.textos.subtitulo, y + 2, PDF_CONFIG.tamanhos.subtitulo, 'normal', corTexto);
+            y = addSeparator(y + 4);
+
+            y = addLine('Aluno(a): ' + nome, y + 6, PDF_CONFIG.tamanhos.nomeAluno, 'bold');
+            y = addLine('Modalidade: ' + modalidadeTexto, y + 4, PDF_CONFIG.tamanhos.modalidade, 'normal');
+            y = addLine(descontosTexto, y + 3, PDF_CONFIG.tamanhos.descontos, 'normal', PDF_CONFIG.cores.textoClaro);
+
+            y = addSeparator(y + 4);
+
+            doc.setFontSize(PDF_CONFIG.tamanhos.valorFinal);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(corDestaque[0], corDestaque[1], corDestaque[2]);
+            const valorText = 'VALOR FINAL: R$ ' + valorFormatado;
+            const valorWidth = doc.getTextWidth(valorText);
+            doc.text(valorText, (pageWidth - valorWidth) / 2, y + 2);
+            doc.setTextColor(corTexto[0], corTexto[1], corTexto[2]);
+            y = y + 10;
+
+            y = addSeparator(y + 4);
+            y = addLine(PDF_CONFIG.textos.permuta, y + 2, PDF_CONFIG.tamanhos.permuta, 'normal');
+            y = y + 4;
+            y = addLine('Fale conosco pelo WhatsApp: ' + PDF_CONFIG.textos.whatsapp, y + 2, PDF_CONFIG.tamanhos.whatsapp, 'bold');
+
+            y = y + 4;
+            y = addLine(PDF_CONFIG.textos.extraOficial, y + 2, PDF_CONFIG.tamanhos.extraOficialTitulo, 'bold', corDestaque);
+            y = addLine(PDF_CONFIG.textos.extraOficialTexto.replace('hoje', 'hoje (' + dataAtual + ')'), y + 1, PDF_CONFIG.tamanhos.extraOficialTexto, 'normal');
+
+            y = addSeparator(y + 6);
+            y = centerText(PDF_CONFIG.textos.rodape, y + 2, PDF_CONFIG.tamanhos.rodape, 'normal', PDF_CONFIG.cores.textoClaro);
+
+            doc.save('proposta_' + nome.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.pdf');
+        }
+
+        btnCalculate.addEventListener('click', mostrarResultado);
+        btnMensal.addEventListener('click', function() { setModalidade('mensal'); });
+        btnAvulsa.addEventListener('click', function() { setModalidade('avulsa'); });
+
+        escolaPublica.addEventListener('change', function() { if (valorCalculado) resetarResultado(); });
+        rendaBaixa.addEventListener('change', function() { if (valorCalculado) resetarResultado(); });
+        amigoAluno.addEventListener('change', function() { if (valorCalculado) resetarResultado(); });
+        nameInput.addEventListener('input', function() { if (valorCalculado) resetarResultado(); });
+
+        btnDownload.addEventListener('click', gerarPDF);
+
+        setModalidade('mensal');
+    </script>
+</body>
+</html>

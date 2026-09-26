@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Aluno | Language Lab</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.png" type="image/png">
+
+  <!-- Tipografia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome & Lucide -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-color: #000000;
+      --bg-hero: #dedcd5;
+      --text-main: #dedcd5;
+      --text-dark: #2a2a2a;
+      --accent-red: #c20000;
+      --dark-red: #920f0b;
+      --font-primary: 'Poppins', sans-serif;
+      --max-width: 900px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #050505;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-red);
+      border-radius: 3px;
+    }
+
+    /* ==========================================================================
+       BOTÃO MARCADOR FLUTUANTE E MENU GAVETA (Exato de metodo.html)
+       ========================================================================== */
+    .nav-drawer-btn {
+      position: fixed;
+      top: 1.2rem;
+      left: -14px;
+      z-index: 1000;
+      background-color: var(--accent-red);
+      color: #ffffff;
+      border: 1px solid rgba(222, 220, 213, 0.2);
+      border-left: none;
+      padding: 0.6rem 0.8rem 0.6rem 1.2rem;
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 3px 0 12px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-drawer-btn:hover {
+      background-color: var(--dark-red);
+      transform: translateX(4px);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(3px);
+      z-index: 1050;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 240px;
+      height: 100vh;
+      background-color: #080808;
+      border-right: 1px solid rgba(222, 220, 213, 0.1);
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer-panel.active {
+      left: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(222, 220, 213, 0.1);
+      margin-bottom: 1.2rem;
+    }
+
+    .drawer-title {
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .drawer-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      font-size: 1rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .drawer-close-btn:hover {
+      opacity: 1;
+      color: var(--accent-red);
+    }
+
+    .drawer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .drawer-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .drawer-link i {
+      width: 16px;
+      text-align: center;
+      color: var(--accent-red);
+      font-size: 0.82rem;
+    }
+
+    .drawer-link:hover {
+      background-color: rgba(194, 0, 0, 0.12);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       CONTEÚDO PRINCIPAL (Delicado, Limpo e Sem Fontes Gigantescas)
+       ========================================================================== */
+    .student-hero {
+      width: 100%;
+      max-width: var(--max-width);
+      padding: 6rem 1.5rem 4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.5rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent-red);
+      background-color: rgba(194, 0, 0, 0.08);
+      border: 1px solid rgba(194, 0, 0, 0.2);
+      padding: 0.35rem 0.9rem;
+      border-radius: 50px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      line-height: 1.3;
+      color: var(--text-main);
+    }
+
+    .hero-title span {
+      color: var(--accent-red);
+    }
+
+    .hero-desc {
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: rgba(222, 220, 213, 0.8);
+      font-weight: 300;
+      max-width: 600px;
+    }
+
+    .info-card {
+      width: 100%;
+      max-width: 650px;
+      background-color: rgba(222, 220, 213, 0.02);
+      border: 1px dashed rgba(222, 220, 213, 0.2);
+      border-radius: 6px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      text-align: left;
+      margin-top: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .info-card:hover {
+      border-color: var(--accent-red);
+    }
+
+    .info-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .info-icon {
+      color: var(--accent-red);
+      font-size: 1.1rem;
+    }
+
+    .info-header h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .info-body p {
+      font-size: 0.82rem;
+      color: rgba(222, 220, 213, 0.8);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .info-footer {
+      border-top: 1px solid rgba(222, 220, 213, 0.1);
+      padding-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.75rem;
+      color: rgba(222, 220, 213, 0.6);
+    }
+
+    .info-footer span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .info-footer i {
+      color: var(--accent-red);
+    }
+
+    /* Ações */
+    .action-group {
+      display: flex;
+      flex-direction: row;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+      width: 100%;
+      max-width: 650px;
+      justify-content: center;
+    }
+
+    @media (max-width: 600px) {
+      .action-group {
+        flex-direction: column;
+      }
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: var(--accent-red);
+      color: #ffffff;
+      padding: 0.7rem 1.4rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.82rem;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 4px 12px rgba(194, 0, 0, 0.25);
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--dark-red);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: transparent;
+      color: var(--text-main);
+      border: 1px solid rgba(222, 220, 213, 0.2);
+      padding: 0.7rem 1.4rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 400;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-red);
+      background-color: rgba(194, 0, 0, 0.05);
+    }
+
+    .notice-box {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: rgba(222, 220, 213, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: center;
+    }
+
+    .notice-box i {
+      color: var(--accent-red);
+    }
+
+    /* Rodapé */
+    footer {
+      margin-top: auto;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: rgba(222, 220, 213, 0.4);
+      letter-spacing: 0.5px;
+    }
+
+    /* Animação suave */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botão e Menu Gaveta de Acesso Rápido -->
+  <button class="nav-drawer-btn" id="openDrawerBtn" aria-label="Abrir menu de navegação">
+    <i class="fa-solid fa-chevron-right"></i>
+  </button>
+
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer-panel" id="drawerPanel">
+    <div class="drawer-header">
+      <span class="drawer-title">Acesso rápido</span>
+      <button class="drawer-close-btn" id="closeDrawerBtn" aria-label="Fechar menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <nav class="drawer-links">
+      <a href="index.html" class="drawer-link">
+        <i class="fa-solid fa-house"></i> Início
+      </a>
+      <a href="https://dididoingles.github.io/method/" class="drawer-link">
+        <i class="fa-solid fa-book-open"></i> Método
+      </a>
+      <a href="https://dididoingles.github.io/calculadora/" class="drawer-link">
+        <i class="fa-solid fa-calculator"></i> Orçamento
+      </a>
+      <a href="https://dididoingles.github.io/library/" class="drawer-link">
+        <i class="fa-solid fa-folder-open"></i> Materiais
+      </a>
+      <a href="https://www.instagram.com/dicarvalho.prof/" target="_blank" rel="noopener noreferrer" class="drawer-link">
+        <i class="fa-brands fa-instagram"></i> Instagram
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Conteúdo Principal -->
+  <main class="student-hero">
+    <div class="hero-badge fade-in">
+      <i class="fa-solid fa-lock"></i> Acesso Exclusivo
+    </div>
+
+    <h1 class="hero-title fade-in">
+      Área do Aluno <br><span>Language Lab</span>
+    </h1>
+
+    <p class="hero-desc fade-in">
+      O ambiente de estudos foi integrado ao laboratório restrito. O acesso é liberado exclusivamente para contas autorizadas.
+    </p>
+
+    <!-- Card Explicativo Refinado -->
+    <div class="info-card fade-in">
+      <div class="info-header">
+        <i class="fa-solid fa-shield-halved info-icon"></i>
+        <h3>Segurança e Autenticação</h3>
+      </div>
+      <div class="info-body">
+        <p>
+          O login é feito diretamente com a sua Conta Google. O sistema verifica automaticamente a permissão do seu e-mail, dispensando senhas complexas ou tokens manuais dentro de um ambiente seguro.
+        </p>
+      </div>
+      <div class="info-footer">
+        <span><i class="fa-solid fa-check"></i> E-mails validados</span>
+        <span><i class="fa-solid fa-check"></i> Google OAuth</span>
+        <span><i class="fa-solid fa-check"></i> Ambiente protegido</span>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="action-group fade-in">
+      <a href="https://sites.google.com/view/languagelabbr/sou-aluno" target="_blank" rel="noopener noreferrer" class="btn-primary">
+        <i class="fa-solid fa-right-to-bracket"></i> Acessar Área do Aluno
+      </a>
+      <button onclick="copyLinkAndAlert(event)" class="btn-secondary">
+        <i class="fa-solid fa-copy" style="color: var(--accent-red);"></i> Copiar Link
+      </button>
+    </div>
+
+    <div class="notice-box fade-in">
+      <i class="fa-solid fa-circle-info"></i> O conteúdo ficará visível apenas após a autenticação com o e-mail cadastrado.
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer>
+    <p>2026 Language Lab · @dicarvalho.prof</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Lógica do Menu Gaveta (Drawer)
+      const openDrawerBtn = document.getElementById('openDrawerBtn');
+      const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+      const drawerOverlay = document.getElementById('drawerOverlay');
+      const drawerPanel = document.getElementById('drawerPanel');
+
+      function openDrawer() {
+        drawerOverlay.classList.add('active');
+        drawerPanel.classList.add('active');
+      }
+
+      function closeDrawer() {
+        drawerOverlay.classList.remove('active');
+        drawerPanel.classList.remove('active');
+      }
+
+      openDrawerBtn.addEventListener('click', openDrawer);
+      closeDrawerBtn.addEventListener('click', closeDrawer);
+      drawerOverlay.addEventListener('click', closeDrawer);
+
+      // Animação de fade-in ao rolar
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    });
+
+    // Função para copiar o link
+    function copyLinkAndAlert(event) {
+      const labLink = "https://sites.google.com/view/languagelabbr/sou-aluno";
+      navigator.clipboard.writeText(labLink).then(() => {
+        const btn = event.currentTarget;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check" style="color: #22c55e;"></i> Link copiado!';
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+        }, 2000);
+      }).catch(() => {
+        alert("Copie o link manualmente: " + labLink);
+      });
+    }
+  </script>
+</body>
+</html>
