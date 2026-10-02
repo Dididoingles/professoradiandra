@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="favicon-16x16.png?v=2">
   <title>Prof.a Diandra de Inglês</title>
   
   <!-- Favicon -->
@@ -453,19 +452,59 @@
       color: var(--accent-red);
     }
 
-    .feedback-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.8rem;
+        /* ============================================================
+       CARROSSEL DE DEPOIMENTOS
+       ============================================================ */
+       .feedback-carousel-section {
+      position: relative;
       width: 100%;
       max-width: 1200px;
-      margin-bottom: 6rem;
+      height: 460px;             /* era 420px */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin: 0 auto 6rem auto;
+      touch-action: pan-y;
+      user-select: none;
     }
 
-    .feedback-card {
+    .carousel-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .carousel-track:active {
+      cursor: grabbing;
+    }
+
+    .testimonial-card-scale {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      opacity: 0;
+      filter: blur(4px);
+      z-index: 0;
+      pointer-events: none;
+      transition:
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform, opacity, filter;
+    }
+
+    .testimonial-card {
+      width: 320px;
+      height: 340px;
+      border-radius: 12px;
       background: radial-gradient(circle at top left, rgba(194, 0, 0, 0.048), transparent 75%), #0c0c0c;
       border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 12px;
       padding: 2.4rem 2.2rem 2.2rem 2.2rem;
       display: flex;
       flex-direction: column;
@@ -473,10 +512,10 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      transition: transform 0.4s var(--smooth-easing), border-color 0.4s ease, box-shadow 0.4s ease;
+      flex-shrink: 0;
     }
 
-    .feedback-card::after {
+    .testimonial-card::after {
       content: '”';
       position: absolute;
       top: -1px;
@@ -489,20 +528,14 @@
       line-height: 1;
     }
 
-    .feedback-card:hover {
-      transform: translateY(-8px);
-      border-color: rgba(194, 0, 0, 0.4);
-      box-shadow: 0 15px 35px rgba(194, 0, 0, 0.15);
-    }
-
-    .card-stars {
+    .testimonial-stars {
       color: var(--accent-red);
       font-size: 0.75rem;
       letter-spacing: 2px;
       margin-bottom: 1.2rem;
     }
 
-    .card-quote {
+    .testimonial-quote {
       font-size: 0.9rem;
       line-height: 1.55;
       color: var(--text-light);
@@ -512,19 +545,119 @@
       z-index: 2;
     }
 
-    .card-author {
+    .testimonial-author {
       font-size: 1.05rem;
       font-weight: 700;
       color: #ffffff;
       margin-bottom: 0.2rem;
     }
 
-    .card-role {
+    .testimonial-role {
       font-size: 0.78rem;
       color: var(--accent-red);
       font-weight: 500;
     }
 
+    .testimonial-card-scale.active {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      filter: blur(0);
+      z-index: 3;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    /* Laterais: afastados do card ativo */
+    .testimonial-card-scale.thumbnail-left {
+      transform: translate(-50%, -50%) translateX(calc(-50% - 120px)) scale(0.5);
+      opacity: 0.4;
+      filter: blur(1px);
+      z-index: 1;
+    }
+
+    .testimonial-card-scale.thumbnail-right {
+      transform: translate(-50%, -50%) translateX(calc(50% + 120px)) scale(0.5);
+      opacity: 0.4;
+      filter: blur(1px);
+      z-index: 1;
+    }
+
+    .testimonial-card-scale.hidden-card {
+      transform: translate(-50%, -50%) scale(0.3);
+      opacity: 0;
+      filter: blur(4px);
+      z-index: 0;
+    }
+
+    /* Bolinhas */
+    .carousel-dots {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 5;
+    }
+
+    .carousel-dots .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--accent-red);
+      opacity: 0.25;
+      cursor: pointer;
+      transition:
+        opacity 0.4s ease,
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .carousel-dots .dot.active {
+      opacity: 1;
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    /* Setas */
+    .carousel-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      line-height: 1;
+      background-color: transparent;
+      border: 1px solid var(--accent-red);
+      border-radius: 50%;
+      color: var(--accent-red);
+      font-size: 14px;
+      font-weight: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .carousel-nav-btn:hover {
+      background-color: var(--accent-red);
+      color: #ffffff;
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .carousel-nav-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .carousel-prev-btn { left: 0; }
+    .carousel-next-btn { right: 0; }
+
+    /* ============================================================
+       STATS
+       ============================================================ */
     .stats-container {
       display: flex;
       justify-content: center;
@@ -973,10 +1106,46 @@
         padding: 3.5rem 1.2rem 6rem 1.2rem;
       }
 
-      .feedback-grid {
-        grid-template-columns: 1fr;
-        gap: 1.2rem;
+      /* Carrossel responsivo no mobile */
+      .feedback-carousel-section {
+        height: 400px;
+        margin-bottom: 3rem;
       }
+
+      .testimonial-card {
+        width: 260px;
+        height: 320px;
+        padding: 1.8rem 1.4rem 1.4rem 1.4rem;
+      }
+
+      .testimonial-quote {
+        font-size: 0.82rem;
+      }
+
+      .testimonial-author {
+        font-size: 0.95rem;
+      }
+
+      .testimonial-role {
+        font-size: 0.72rem;
+      }
+
+      .testimonial-card-scale.thumbnail-left {
+        transform: translate(-50%, -50%) translateX(calc(-50% - 20px)) scale(0.45);
+      }
+
+      .testimonial-card-scale.thumbnail-right {
+        transform: translate(-50%, -50%) translateX(calc(50% + 20px)) scale(0.45);
+      }
+
+      .carousel-nav-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+
+      .carousel-prev-btn { left: 4px; }
+      .carousel-next-btn { right: 4px; }
 
       .ecosystem-grid {
         grid-template-columns: 1fr;
@@ -1193,66 +1362,12 @@
       <h2 class="feedback-title">A voz da <span>evolução</span></h2>
     </div>
 
-    <!-- Cards de Feedback -->
-    <div class="feedback-grid">
-      
-      <article class="feedback-card reveal-on-scroll delay-1">
-        <div>
-          <div class="card-stars">
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-          </div>
-          <p class="card-quote">
-            As aulas têm sido sensacionais. Nunca imaginei que fosse conseguir aprender inglês, e em 4 meses tive um avanço que não acreditava ser possível.
-          </p>
-        </div>
-        <div>
-          <h3 class="card-author">Gabriel Savi</h3>
-          <p class="card-role">Desenvolvedor | fluente em 4 meses</p>
-        </div>
-      </article>
-
-      <article class="feedback-card reveal-on-scroll delay-2">
-        <div>
-          <div class="card-stars">
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-          </div>
-          <p class="card-quote">
-            Diandra's classes have absolutely helped me, specifically regarding pronunciation and complex subjects. A true game changer.
-          </p>
-        </div>
-        <div>
-          <h3 class="card-author">Diego Lopes</h3>
-          <p class="card-role">Engineer</p>
-        </div>
-      </article>
-
-      <article class="feedback-card reveal-on-scroll delay-3">
-        <div>
-          <div class="card-stars">
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-            <i class="fa-solid fa-star"></i>
-          </div>
-          <p class="card-quote">
-            Professora Diandra tiene uma metodologia simples e funcional. Muito incentivadora e as aulas são altamente eficazes.
-          </p>
-        </div>
-        <div>
-          <h3 class="card-author">Keila Martins</h3>
-          <p class="card-role">Cost analyst</p>
-        </div>
-      </article>
-
+    <!-- Carrossel de Depoimentos -->
+    <div class="feedback-carousel-section reveal-on-scroll delay-1" id="feedbackCarouselSection">
+      <button class="carousel-nav-btn carousel-prev-btn" onclick="testimonialPrev()" aria-label="Depoimento anterior">&#10094;</button>
+      <div class="carousel-track" id="testimonialTrack"></div>
+      <button class="carousel-nav-btn carousel-next-btn" onclick="testimonialNext()" aria-label="Próximo depoimento">&#10095;</button>
+      <div class="carousel-dots" id="testimonialDots"></div>
     </div>
 
     <!-- Métricas com Contador Animado -->
@@ -1848,6 +1963,236 @@
       }
 
       setTimeout(typeWriter, delayStart);
+
+      // ============================================================
+      // CARROSSEL DE DEPOIMENTOS
+      // ============================================================
+      const testimonialsData = [
+        {
+          stars: 5,
+          quote: 'As aulas têm sido sensacionais. Nunca imaginei que fosse conseguir aprender inglês, e em 4 meses tive um avanço que não acreditava ser possível.',
+          author: 'Gabriel Savi',
+          role: 'Desenvolvedor | fluente em 4 meses'
+        },
+        {
+          stars: 5,
+          quote: "As aulas me surpreenderam, as conversas em Inglês foram direcionadas ao que estávamos aprendendo do curso de Liderança.[...] Foi divertido aprender, a Diandra é uma professora com muito potencial intelectual e domínio do Inglês.",
+          author: 'Gerson SILVA, ',
+          role: 'Gerente da Manutenção'
+        },
+        {
+          stars: 5,
+          quote: "Diandra's classes have absolutely helped me, specifically regarding pronunciation and complex subjects. A true game changer.",
+          author: 'Diego Lopes',
+          role: 'Engineer'
+        },
+        {
+          stars: 5,
+          quote: "Gostei muito da nossa primeira aula. Foi bem dinâmica. Você tem uma didática muito boa, foca no que é necessário para que o inglês entre na cabeça e permita que o aluno consiga ler e entender o significado das palavras.",
+          author: 'NILMA, ',
+          role: 'Especialista tributária'
+        },
+        {
+          stars: 5,
+          quote: "Eu achei maravilhoso o metodo que é utilizado, em pouco tempo ela soube meus pontos que preciso fortificar, e ainda por cima é criado um metodo para cada aluno. Já estou adorando e acredito que vou evoluir muito!",
+          author: 'VITOR, ',
+          role: 'Tecnologia da informação'
+        },
+    
+        
+        {
+          stars: 5,
+          quote: 'Professora Diandra tem uma metodologia simples e funcional. Muito incentivadora e as aulas são altamente eficazes.',
+          author: 'Keila Martins',
+          role: 'Cost analyst'
+        }
+        // adicione mais depoimentos aqui se quiser
+      ];
+
+      let testimonialIndex = 0;
+
+      function buildTestimonialCard(t) {
+        const card = document.createElement('div');
+        card.className = 'testimonial-card';
+
+        const top = document.createElement('div');
+
+        const stars = document.createElement('div');
+        stars.className = 'testimonial-stars';
+        for (let i = 0; i < t.stars; i++) {
+          const s = document.createElement('i');
+          s.className = 'fa-solid fa-star';
+          stars.appendChild(s);
+        }
+
+        const quote = document.createElement('p');
+        quote.className = 'testimonial-quote';
+        quote.textContent = t.quote;
+
+        top.appendChild(stars);
+        top.appendChild(quote);
+
+        const bottom = document.createElement('div');
+
+        const author = document.createElement('h3');
+        author.className = 'testimonial-author';
+        author.textContent = t.author;
+
+        const role = document.createElement('p');
+        role.className = 'testimonial-role';
+        role.textContent = t.role;
+
+        bottom.appendChild(author);
+        bottom.appendChild(role);
+
+        card.appendChild(top);
+        card.appendChild(bottom);
+
+        return card;
+      }
+
+      function buildTestimonialCarousel() {
+        const track = document.getElementById('testimonialTrack');
+        if (!track) return;
+        track.innerHTML = '';
+
+        testimonialsData.forEach((t, i) => {
+          const scale = document.createElement('div');
+          scale.className = 'testimonial-card-scale hidden-card';
+          scale.dataset.index = i;
+
+          const card = buildTestimonialCard(t);
+          scale.appendChild(card);
+          track.appendChild(scale);
+        });
+
+        buildTestimonialDots();
+        updateTestimonialCarousel();
+      }
+
+      function buildTestimonialDots() {
+        const dotsContainer = document.getElementById('testimonialDots');
+        if (!dotsContainer) return;
+        dotsContainer.innerHTML = '';
+
+        testimonialsData.forEach((_, i) => {
+          const dot = document.createElement('div');
+          dot.className = 'dot' + (i === 0 ? ' active' : '');
+          dot.dataset.index = i;
+          dot.addEventListener('click', () => testimonialGoTo(i));
+          dotsContainer.appendChild(dot);
+        });
+      }
+
+      function updateTestimonialDots() {
+        const dots = document.querySelectorAll('#testimonialDots .dot');
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === testimonialIndex);
+        });
+      }
+
+      function updateTestimonialCarousel() {
+        const track = document.getElementById('testimonialTrack');
+        if (!track) return;
+        const all = track.querySelectorAll('.testimonial-card-scale');
+        const total = testimonialsData.length;
+
+        const prevIndex = (testimonialIndex - 1 + total) % total;
+        const nextIndex = (testimonialIndex + 1) % total;
+
+        all.forEach((scale, i) => {
+          scale.classList.remove('active', 'thumbnail-left', 'thumbnail-right', 'hidden-card');
+
+          if (i === testimonialIndex) {
+            scale.classList.add('active');
+          } else if (i === prevIndex) {
+            scale.classList.add('thumbnail-left');
+          } else if (i === nextIndex) {
+            scale.classList.add('thumbnail-right');
+          } else {
+            scale.classList.add('hidden-card');
+          }
+        });
+
+        updateTestimonialDots();
+      }
+
+      function testimonialGoTo(index) {
+        if (index === testimonialIndex) return;
+        testimonialIndex = index;
+        updateTestimonialCarousel();
+      }
+
+      function testimonialNext() {
+        testimonialIndex = (testimonialIndex + 1) % testimonialsData.length;
+        updateTestimonialCarousel();
+      }
+
+      function testimonialPrev() {
+        testimonialIndex = (testimonialIndex - 1 + testimonialsData.length) % testimonialsData.length;
+        updateTestimonialCarousel();
+      }
+
+      // Expõe funções para os onclick inline dos botões
+      window.testimonialNext = testimonialNext;
+      window.testimonialPrev = testimonialPrev;
+
+      // Swipe / drag no carrossel
+      (function initTestimonialSwipe() {
+        const track = document.getElementById('testimonialTrack');
+        if (!track) return;
+
+        let startX = 0;
+        let isDragging = false;
+        const threshold = 30;
+
+        track.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          isDragging = true;
+        }, { passive: true });
+
+        track.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          const currentX = e.touches[0].clientX;
+          const diff = currentX - startX;
+
+          if (Math.abs(diff) > threshold) {
+            if (diff > 0) { testimonialPrev(); } else { testimonialNext(); }
+            isDragging = false;
+          }
+        }, { passive: true });
+
+        track.addEventListener('touchend', () => {
+          isDragging = false;
+        });
+
+        track.addEventListener('mousedown', (e) => {
+          startX = e.clientX;
+          isDragging = true;
+        });
+
+        track.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const currentX = e.clientX;
+          const diff = currentX - startX;
+
+          if (Math.abs(diff) > threshold) {
+            if (diff > 0) { testimonialPrev(); } else { testimonialNext(); }
+            isDragging = false;
+          }
+        });
+
+        track.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+
+        track.addEventListener('mouseleave', () => {
+          isDragging = false;
+        });
+      })();
+
+      // Inicializa o carrossel
+      buildTestimonialCarousel();
 
       // Smooth Scroll Revelations
       const observerOptions = {
